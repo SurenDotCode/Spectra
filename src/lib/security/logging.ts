@@ -1,0 +1,2 @@
+const secretKeys=/password|token|secret|authorization|cookie|email|phone|audio|note|transcript|text|prompt/i;
+export function redact(value:unknown):unknown{if(Array.isArray(value))return value.map(redact);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,secretKeys.test(k)?'[REDACTED]':redact(v)]));if(typeof value==='string')return value.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'[EMAIL]').replace(/\b(?:\+?\d[\d ()-]{7,}\d)\b/g,'[PHONE]').slice(0,2000);return value;}
