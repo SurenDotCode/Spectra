@@ -1,0 +1,2 @@
+export class AppError extends Error{constructor(public readonly code:string,public readonly status=400, message='This request could not be completed.'){super(message);}}
+export function publicError(error:unknown){if(error instanceof AppError)return {error:error.message,code:error.code,status:error.status};return {error:'Something interrupted this request. Please try again.',code:'INTERNAL',status:500};}
