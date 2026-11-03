@@ -1,0 +1,10 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(5);
+select is((select count(*)::integer from pg_class where relnamespace='public'::regnamespace and relkind='r' and relrowsecurity),16,'RLS on every application table');
+select is((select count(*)::integer from pg_class where relnamespace='public'::regnamespace and relkind='r' and relforcerowsecurity),16,'Force RLS on every table');
+select ok(not has_table_privilege('anon','public.profiles','SELECT'),'anon cannot read');
+select ok(not has_table_privilege('authenticated','public.usage_counters','UPDATE'),'quota cannot be changed by clients');
+select ok(not has_function_privilege('authenticated','public.claim_search(uuid)','EXECUTE'),'worker claim is privileged');
+select * from finish();
+rollback;
