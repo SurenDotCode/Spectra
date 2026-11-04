@@ -11,8 +11,8 @@ Public source repository: https://github.com/SurenDotCode/spectra (visibility ex
 ## 2. Evidence
 
 - Typecheck, ESLint and production build pass locally.
-- 66 unit/integration tests; six browser tests, including axe, stored-XSS, CSV, quota stop and editable voice transcript; 86 actual local Supabase pgTAP checks pass.
-- Security-module line coverage 93.33%, crawler 95.18%; selected critical-module total 89.61% lines / 81.63% branches. This is not whole-app coverage.
+- 67 unit/integration tests; six browser tests, including axe, stored-XSS, CSV, quota stop and editable voice transcript; 86 actual local Supabase pgTAP checks pass.
+- Security-module line coverage 93.43%, crawler 95.18%; selected critical-module total 89.72% lines / 81.63% branches. This is not whole-app coverage.
 - Runtime dependency audit: zero vulnerabilities. Full dependency audit: 20 moderate development-tool findings; no high/critical findings; high-severity gate passes. Major-version force fixes were not applied blindly.
 - Tracked-file secret-pattern scan passes. The hosted quality job, including Gitleaks, passed on commit `46b67f9`. CodeQL reporting was initially blocked by disabled private-repository code scanning; the owner approved public visibility and the job was rerun. See [the Actions run](https://github.com/SurenDotCode/spectra/actions/runs/41779684925) for its status.
 - Lighthouse: 96 performance, 100 accessibility, 100 best practices, 100 SEO; zero layout shift. Measured locally on the setup landing page, not authenticated research performance; see `docs/LIGHTHOUSE.json`.

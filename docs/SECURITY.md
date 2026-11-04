@@ -7,10 +7,10 @@ This is a tested implementation, not a certified ASVS L2 product or an independe
 | Check                                  | Local result                                   | Scope                                                                                                     |
 | -------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | TypeScript / ESLint / production build | Passed                                         | Strict types, client/server import restrictions, dangerous HTML ban                                       |
-| Vitest                                 | 66 passed, 12 files                            | Pipeline/provider fixtures, quotas, DB isolation, SSRF, CSRF, upload, injection, references, CSV          |
+| Vitest                                 | 67 passed, 12 files                            | Pipeline/provider fixtures, quotas, DB isolation, SSRF, CSRF, upload, injection, references, CSV          |
 | Supabase pgTAP                         | 86 passed, two files                           | Actual local Supabase; cross-user read/insert/update/delete and grants                                    |
 | Playwright                             | 6 passed                                       | Edge/Chromium; mocked offer/research/board/STT; real setup-mode denial and headers; axe scans             |
-| Coverage                               | Security lines 93.33%; safe-fetch lines 95.18% | Selected critical-module coverage; not whole-app coverage. Overall selected lines 89.61%, branches 81.63% |
+| Coverage                               | Security lines 93.43%; safe-fetch lines 95.18% | Selected critical-module coverage; not whole-app coverage. Overall selected lines 89.72%, branches 81.63% |
 | Runtime npm audit                      | 0 vulnerabilities                              | `npm audit --omit=dev --audit-level=high`                                                                 |
 | Secret-pattern scan                    | Passed                                         | Tracked files; supplements CI Gitleaks, not a guarantee                                                   |
 

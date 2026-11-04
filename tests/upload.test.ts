@@ -19,3 +19,11 @@ it("removes active markup and control characters while leaving instructions as u
   );
   expect(cleanText("a\u202Eb")).toBe("ab");
 });
+it("parses whitespace end tags and removes hidden or embedded active content", () => {
+  const text =
+    "<SCRIPT>steal()</script ><style>secret</style ><iframe>hidden</iframe><template>injected</template><p hidden>fake contact</p><b>Useful offer</b>";
+  expect(cleanText(text)).toBe("Useful offer");
+  expect(cleanText("# My offer\n\n- Follow up &amp; track replies")).toBe(
+    "# My offer\n\n- Follow up & track replies",
+  );
+});

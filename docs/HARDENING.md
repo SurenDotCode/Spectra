@@ -18,3 +18,7 @@ Reviewed 2026-11-04. This is an engineering self-review, not an independent pene
 | Low-contrast label in dark theme                                            | Labels inherit theme foreground                                                                                          | Lighthouse and axe                                              |
 
 Unresolved: live provider behavior, paid-provider spend calibration, hosted OAuth/email/MFA/session revocation, full ASVS audit, actual model resilience to malicious text, and multi-browser assistive-technology testing. No A+ headers grade or independent security certification is claimed.
+
+## CodeQL follow-up
+
+The first successful hosted CodeQL analysis reported four alerts around regex-based upload HTML stripping (incomplete multi-character sanitization and a script end-tag bypass). Replaced regex stripping with the existing Cheerio HTML parser, removed active/hidden nodes and extracted plain text. Added a regression for whitespace end tags and embedded/hidden content. The text is still escaped by React and never rendered as HTML. CI now also parses generated SARIF and fails if any CodeQL finding remains; an upload-success status alone is not sufficient.

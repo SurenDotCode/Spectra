@@ -1,4 +1,5 @@
 import { AppError } from "../errors";
+import { load } from "cheerio";
 export function inspectDocument(name: string, bytes: Uint8Array) {
   if (bytes.length === 0 || bytes.length > 2000000)
     throw new AppError("UPLOAD_SIZE", 413, "Documents must be under 2 MB.");
@@ -36,10 +37,13 @@ export function inspectDocument(name: string, bytes: Uint8Array) {
   return "text" as const;
 }
 export function cleanText(text: string) {
-  return text
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<[^>]*>/g, "")
+  // Extract plain text with an HTML parser; this is never trusted HTML output.
+  const $ = load(text, {}, false);
+  $(
+    "script,style,iframe,object,embed,template,noscript,[hidden],[aria-hidden='true']",
+  ).remove();
+  return $.root()
+    .text()
     .replace(
       /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u202A-\u202E\u2066-\u2069]/g,
       "",
