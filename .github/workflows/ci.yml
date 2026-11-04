@@ -20,7 +20,7 @@ jobs:
       - run: npx supabase test db
       - run: node scripts/secret-scan.mjs
       - run: npm audit --audit-level=high
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   codeql:
