@@ -1,6 +1,76 @@
-import {it,expect,vi} from 'vitest';
-import {publicUrl,publicAddress,SafeFetchProvider} from '../src/lib/security/safe-fetch';
-it.each(['http://localhost','http://127.0.0.1','http://2130706433','http://0177.0.0.1','http://169.254.169.254/latest/meta-data','http://10.1.1.1','http://192.168.1.1','http://100.64.0.1','http://[::1]','http://[::ffff:127.0.0.1]','http://[fc00::1]','http://[fe80::1]','file:///etc/passwd','https://user:pass@example.com','https://example.com:22','https://www.linkedin.com/in/test'])('blocks %s',url=>expect(()=>publicUrl(url)).toThrow());
-it('rejects private DNS and mixed public/private results',async()=>{const transport=vi.fn();const f=new SafeFetchProvider(async()=>{},async()=>[{address:'93.184.216.34',family:4},{address:'127.0.0.1',family:4}],transport);await expect(f.fetch('https://example.com')).rejects.toThrow('not public');expect(transport).not.toHaveBeenCalled();expect(publicAddress('8.8.8.8')).toBe(true);});
-it('pins resolved addresses and revalidates redirect targets',async()=>{const transport=vi.fn(async(url:URL,ip:{address:string;family:number})=>{expect(ip.address).toBe('93.184.216.34');if(url.pathname==='/robots.txt')return {url:url.href,status:404,headers:{},text:''};return {url:url.href,status:302,headers:{location:'http://127.0.0.1/secrets'},text:''};});const f=new SafeFetchProvider(async()=>{},async()=>[{address:'93.184.216.34',family:4}],transport);await expect(f.fetch('https://example.com')).rejects.toThrow();expect(transport).toHaveBeenCalledTimes(2);});
-it('honors robots restrictions and never fetches the blocked page',async()=>{const transport=vi.fn(async(url:URL)=>({url:url.href,status:200,headers:{},text:'User-agent: *\nDisallow: /'}));await expect(new SafeFetchProvider(async()=>{},async()=>[{address:'93.184.216.34',family:4}],transport).fetch('https://example.com')).rejects.toThrow('does not permit');expect(transport).toHaveBeenCalledTimes(1);});
+import { it, expect, vi } from "vitest";
+import {
+  publicUrl,
+  publicAddress,
+  SafeFetchProvider,
+} from "../src/lib/security/safe-fetch";
+it.each([
+  "http://localhost",
+  "http://127.0.0.1",
+  "http://2130706433",
+  "http://0177.0.0.1",
+  "http://169.254.169.254/latest/meta-data",
+  "http://10.1.1.1",
+  "http://192.168.1.1",
+  "http://100.64.0.1",
+  "http://[::1]",
+  "http://[::ffff:127.0.0.1]",
+  "http://[fc00::1]",
+  "http://[fe80::1]",
+  "file:///etc/passwd",
+  "https://user:pass@example.com",
+  "https://example.com:22",
+  "https://www.linkedin.com/in/test",
+])("blocks %s", (url) => expect(() => publicUrl(url)).toThrow());
+it("rejects private DNS and mixed public/private results", async () => {
+  const transport = vi.fn();
+  const f = new SafeFetchProvider(
+    async () => {},
+    async () => [
+      { address: "93.184.216.34", family: 4 },
+      { address: "127.0.0.1", family: 4 },
+    ],
+    transport,
+  );
+  await expect(f.fetch("https://example.com")).rejects.toThrow("not public");
+  expect(transport).not.toHaveBeenCalled();
+  expect(publicAddress("8.8.8.8")).toBe(true);
+});
+it("pins resolved addresses and revalidates redirect targets", async () => {
+  const transport = vi.fn(
+    async (url: URL, ip: { address: string; family: number }) => {
+      expect(ip.address).toBe("93.184.216.34");
+      if (url.pathname === "/robots.txt")
+        return { url: url.href, status: 404, headers: {}, text: "" };
+      return {
+        url: url.href,
+        status: 302,
+        headers: { location: "http://127.0.0.1/secrets" },
+        text: "",
+      };
+    },
+  );
+  const f = new SafeFetchProvider(
+    async () => {},
+    async () => [{ address: "93.184.216.34", family: 4 }],
+    transport,
+  );
+  await expect(f.fetch("https://example.com")).rejects.toThrow();
+  expect(transport).toHaveBeenCalledTimes(2);
+});
+it("honors robots restrictions and never fetches the blocked page", async () => {
+  const transport = vi.fn(async (url: URL) => ({
+    url: url.href,
+    status: 200,
+    headers: {},
+    text: "User-agent: *\nDisallow: /",
+  }));
+  await expect(
+    new SafeFetchProvider(
+      async () => {},
+      async () => [{ address: "93.184.216.34", family: 4 }],
+      transport,
+    ).fetch("https://example.com"),
+  ).rejects.toThrow("does not permit");
+  expect(transport).toHaveBeenCalledTimes(1);
+});

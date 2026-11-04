@@ -1,6 +1,74 @@
-import {z} from 'zod';
-import {offerSchema} from '@/lib/schemas';
-import {authenticated,body,handle,rate} from '@/lib/server/guard';
-import {reasoning} from '@/lib/server/providers';
-export const maxDuration=90;
-export async function POST(request:Request){return handle(async()=>{const{db,user}=await authenticated(request,true);await rate(`offer:${user.id}`,5);const input=await body(request,z.discriminatedUnion('action',[z.object({action:z.literal('understand'),description:z.string().min(20).max(20000),preferences:offerSchema.pick({location:true,countries:true,languages:true,industry:true,businessSize:true,scope:true})}).strict(),z.object({action:z.literal('confirm'),profile:offerSchema}).strict()]));if(input.action==='understand'){const result=await reasoning(user.id).generate('Extract this offer faithfully. Do not invent pricing, integrations, or capabilities. Put Not specified for unknown text fields and [] for unknown lists. Ask up to 3 concise clarification questions about consequential gaps. Use supplied preferences.',input,z.object({profile:offerSchema,questions:z.array(z.string().max(250)).max(3)}).strict());const{error}=await db.from('offer_profiles').insert({user_id:user.id,data:result,confirmed:false});if(error)throw error;return Response.json(result);}const{data:previous}=await db.from('offer_profiles').select('version').eq('user_id',user.id).order('version',{ascending:false}).limit(1);const version=z.array(z.object({version:z.number()})).parse(previous??[])[0]?.version??0;const{data,error}=await db.from('offer_profiles').insert({user_id:user.id,version:version+1,confirmed:true,data:{profile:input.profile}}).select('id').single();if(error)throw error;return Response.json({id:z.object({id:z.uuid()}).parse(data).id,profile:input.profile});});}
+import { z } from "zod";
+import { offerSchema } from "@/lib/schemas";
+import { authenticated, body, handle, rate } from "@/lib/server/guard";
+import { reasoning } from "@/lib/server/providers";
+export const maxDuration = 90;
+export async function POST(request: Request) {
+  return handle(async () => {
+    const { db, user } = await authenticated(request, true);
+    await rate(`offer:${user.id}`, 5);
+    const input = await body(
+      request,
+      z.discriminatedUnion("action", [
+        z
+          .object({
+            action: z.literal("understand"),
+            description: z.string().min(20).max(20000),
+            preferences: offerSchema.pick({
+              location: true,
+              countries: true,
+              languages: true,
+              industry: true,
+              businessSize: true,
+              scope: true,
+            }),
+          })
+          .strict(),
+        z
+          .object({ action: z.literal("confirm"), profile: offerSchema })
+          .strict(),
+      ]),
+    );
+    if (input.action === "understand") {
+      const result = await reasoning(user.id).generate(
+        "Extract this offer faithfully. Do not invent pricing, integrations, or capabilities. Put Not specified for unknown text fields and [] for unknown lists. Ask up to 3 concise clarification questions about consequential gaps. Use supplied preferences.",
+        input,
+        z
+          .object({
+            profile: offerSchema,
+            questions: z.array(z.string().max(250)).max(3),
+          })
+          .strict(),
+      );
+      const { error } = await db
+        .from("offer_profiles")
+        .insert({ user_id: user.id, data: result, confirmed: false });
+      if (error) throw error;
+      return Response.json(result);
+    }
+    const { data: previous } = await db
+      .from("offer_profiles")
+      .select("version")
+      .eq("user_id", user.id)
+      .order("version", { ascending: false })
+      .limit(1);
+    const version =
+      z.array(z.object({ version: z.number() })).parse(previous ?? [])[0]
+        ?.version ?? 0;
+    const { data, error } = await db
+      .from("offer_profiles")
+      .insert({
+        user_id: user.id,
+        version: version + 1,
+        confirmed: true,
+        data: { profile: input.profile },
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    return Response.json({
+      id: z.object({ id: z.uuid() }).parse(data).id,
+      profile: input.profile,
+    });
+  });
+}

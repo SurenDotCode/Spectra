@@ -1,12 +1,139 @@
-import {z} from 'zod';
-import {authenticated,body,handle,rate} from '@/lib/server/guard';
-import {adminDb} from '@/lib/server/admin';
-import {env} from '@/lib/server/env';
-import {reasoning,search} from '@/lib/server/providers';
-import {tick} from '@/lib/server/jobs';
-import {AppError} from '@/lib/errors';
-import {offerSchema} from '@/lib/schemas';
-export const runtime='nodejs';export const maxDuration=90;
-export async function GET(request:Request){return handle(async()=>{const{db,user}=await authenticated(request);const query=z.object({id:z.uuid().optional()}).strict().parse(Object.fromEntries(new URL(request.url).searchParams));let q=db.from('searches').select('id,status,stage,data,created_at,offer_id').eq('user_id',user.id).order('created_at',{ascending:false}).limit(30);if(query.id)q=q.eq('id',query.id);const{data,error}=await q;if(error)throw error;const stages=query.id?await db.from('search_stages').select('stage,status,item_key,attempts').eq('user_id',user.id).eq('search_id',query.id):{data:[]};return Response.json({searches:data,stages:stages.data??[]});});}
-export async function POST(request:Request){return handle(async()=>{const{db,user}=await authenticated(request,true);const input=await body(request,z.discriminatedUnion('action',[z.object({action:z.literal('start'),offerId:z.uuid(),idempotencyKey:z.uuid()}).strict(),z.object({action:z.literal('tick'),id:z.uuid()}).strict(),z.object({action:z.literal('retry'),id:z.uuid()}).strict()]));const admin=adminDb();if(input.action==='start'){await rate(`research:${user.id}`,5);const{data:existing}=await db.from('searches').select('id').eq('user_id',user.id).eq('idempotency_key',input.idempotencyKey).maybeSingle();if(existing)return Response.json({id:existing.id});if(env().GLOBAL_KILL_SWITCH==='true'||env().PROVIDER_BUDGET_CONFIRMED!=='true')throw new AppError('BUDGET',429,'Research is paused until the owner confirms provider budgets.');if(env().REASONING_PROVIDER==='evon')throw new AppError('EVON_UNAVAILABLE',503,'Evon API access and its contract are not confirmed.');reasoning(user.id);search(user.id);const{data:offer,error}=await db.from('offer_profiles').select('data,confirmed').eq('id',input.offerId).eq('user_id',user.id).single();if(error||!offer?.confirmed)throw new AppError('CONFIRM',403,'Confirm your offer profile before researching.');const profile=z.object({profile:offerSchema}).parse(offer.data).profile;void profile;const{data:jobId,error:insertError}=await admin.rpc('start_search',{p_user:user.id,p_offer:input.offerId,p_key:input.idempotencyKey});if(insertError)throw new AppError('START_BLOCKED',409,'A batch is already active or the daily quota is reached. Check History and Usage.');return Response.json({id:z.uuid().parse(jobId)});}const{data:job,error}=await db.from('searches').select('id,status').eq('id',input.id).eq('user_id',user.id).single();if(error||!job)throw new AppError('NOT_FOUND',404,'This search was not found.');await rate(`tick:${user.id}`,30);if(input.action==='retry'&&['failed','quota'].includes(job.status)){const{error:e}=await admin.from('searches').update({status:'queued'}).eq('id',input.id).eq('user_id',user.id);if(e)throw e;}await tick(input.id);return Response.json({id:input.id});});}
-
+import { z } from "zod";
+import { authenticated, body, handle, rate } from "@/lib/server/guard";
+import { adminDb } from "@/lib/server/admin";
+import { env } from "@/lib/server/env";
+import { reasoning, search } from "@/lib/server/providers";
+import { tick } from "@/lib/server/jobs";
+import { AppError } from "@/lib/errors";
+import { offerSchema } from "@/lib/schemas";
+export const runtime = "nodejs";
+export const maxDuration = 90;
+export async function GET(request: Request) {
+  return handle(async () => {
+    const { db, user } = await authenticated(request);
+    const query = z
+      .object({ id: z.uuid().optional() })
+      .strict()
+      .parse(Object.fromEntries(new URL(request.url).searchParams));
+    let q = db
+      .from("searches")
+      .select("id,status,stage,data,created_at,offer_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (query.id) q = q.eq("id", query.id);
+    const { data, error } = await q;
+    if (error) throw error;
+    const stages = query.id
+      ? await db
+          .from("search_stages")
+          .select("stage,status,item_key,attempts")
+          .eq("user_id", user.id)
+          .eq("search_id", query.id)
+      : { data: [] };
+    return Response.json({ searches: data, stages: stages.data ?? [] });
+  });
+}
+export async function POST(request: Request) {
+  return handle(async () => {
+    const { db, user } = await authenticated(request, true);
+    const input = await body(
+      request,
+      z.discriminatedUnion("action", [
+        z
+          .object({
+            action: z.literal("start"),
+            offerId: z.uuid(),
+            idempotencyKey: z.uuid(),
+          })
+          .strict(),
+        z.object({ action: z.literal("tick"), id: z.uuid() }).strict(),
+        z.object({ action: z.literal("retry"), id: z.uuid() }).strict(),
+      ]),
+    );
+    const admin = adminDb();
+    if (input.action === "start") {
+      await rate(`research:${user.id}`, 5);
+      const { data: existing } = await db
+        .from("searches")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("idempotency_key", input.idempotencyKey)
+        .maybeSingle();
+      if (existing) return Response.json({ id: existing.id });
+      if (
+        env().GLOBAL_KILL_SWITCH === "true" ||
+        env().PROVIDER_BUDGET_CONFIRMED !== "true"
+      )
+        throw new AppError(
+          "BUDGET",
+          429,
+          "Research is paused until the owner confirms provider budgets.",
+        );
+      if (env().REASONING_PROVIDER === "evon")
+        throw new AppError(
+          "EVON_UNAVAILABLE",
+          503,
+          "Evon API access and its contract are not confirmed.",
+        );
+      reasoning(user.id);
+      search(user.id);
+      const { data: offer, error } = await db
+        .from("offer_profiles")
+        .select("data,confirmed")
+        .eq("id", input.offerId)
+        .eq("user_id", user.id)
+        .single();
+      if (error || !offer?.confirmed)
+        throw new AppError(
+          "CONFIRM",
+          403,
+          "Confirm your offer profile before researching.",
+        );
+      const profile = z
+        .object({ profile: offerSchema })
+        .parse(offer.data).profile;
+      void profile;
+      const { data: jobId, error: insertError } = await admin.rpc(
+        "start_search",
+        {
+          p_user: user.id,
+          p_offer: input.offerId,
+          p_key: input.idempotencyKey,
+        },
+      );
+      if (insertError)
+        throw new AppError(
+          "START_BLOCKED",
+          409,
+          "A batch is already active or the daily quota is reached. Check History and Usage.",
+        );
+      return Response.json({ id: z.uuid().parse(jobId) });
+    }
+    const { data: job, error } = await db
+      .from("searches")
+      .select("id,status,attempts")
+      .eq("id", input.id)
+      .eq("user_id", user.id)
+      .single();
+    if (error || !job)
+      throw new AppError("NOT_FOUND", 404, "This search was not found.");
+    if (input.action === "retry" && job.attempts >= 3)
+      throw new AppError(
+        "RETRY_LIMIT",
+        429,
+        "This search reached its retry limit. Completed evidence is preserved.",
+      );
+    await rate(`tick:${user.id}`, 30);
+    if (input.action === "retry" && ["failed", "quota"].includes(job.status)) {
+      const { error: e } = await admin
+        .from("searches")
+        .update({ status: "queued" })
+        .eq("id", input.id)
+        .eq("user_id", user.id);
+      if (e) throw e;
+    }
+    await tick(input.id);
+    return Response.json({ id: input.id });
+  });
+}

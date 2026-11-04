@@ -1,3 +1,46 @@
-import type {Prospect} from './schemas';
-export function csvCell(value:string){const safe=/^[=+\-@\t\r\n]/.test(value)||/^\s+[=+\-@]/.test(value)?`'${value}`:value;return `"${safe.replace(/"/g,'""')}"`;}
-export function prospectsCsv(prospects:Prospect[]){const rows=[['Business','Website','Location','Fit score','Relevance (inference)','Contacts (publicly listed; deliverability unconfirmed)','People (affiliation status included)','Evidence URLs','Checked at','Qualification question'],...prospects.map(p=>[p.name,p.url,p.location,String(p.score),p.assessment.explanation,p.assessment.contacts.map(c=>`${c.channel}: ${c.value} | ${c.sourceUrl} | ${c.checkedAt}`).join('\n'),p.assessment.people.map(x=>`${x.name}, ${x.role} | ${x.linkedin} | ${x.confirmed?'company-page affiliation evidence':'unconfirmed affiliation'}`).join('\n'),p.assessment.observations.map(o=>o.sourceUrl).join('\n'),p.checkedAt,p.assessment.question])];return '\uFEFF'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n');}
+import type { Prospect } from "./schemas";
+export function csvCell(value: string) {
+  const safe =
+    /^[=+\-@\t\r\n]/.test(value) || /^\s+[=+\-@]/.test(value)
+      ? `'${value}`
+      : value;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+export function prospectsCsv(prospects: Prospect[]) {
+  const rows = [
+    [
+      "Business",
+      "Website",
+      "Location",
+      "Fit score",
+      "Relevance (inference)",
+      "Contacts (publicly listed; deliverability unconfirmed)",
+      "People (affiliation status included)",
+      "Evidence URLs",
+      "Checked at",
+      "Qualification question",
+    ],
+    ...prospects.map((p) => [
+      p.name,
+      p.url,
+      p.location,
+      String(p.score),
+      p.assessment.explanation,
+      p.assessment.contacts
+        .map(
+          (c) => `${c.channel}: ${c.value} | ${c.sourceUrl} | ${c.checkedAt}`,
+        )
+        .join("\n"),
+      p.assessment.people
+        .map(
+          (x) =>
+            `${x.name}, ${x.role} | ${x.linkedin} | ${x.confirmed ? "company-page affiliation evidence" : "unconfirmed affiliation"}`,
+        )
+        .join("\n"),
+      p.assessment.observations.map((o) => o.sourceUrl).join("\n"),
+      p.checkedAt,
+      p.assessment.question,
+    ]),
+  ];
+  return "\uFEFF" + rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
+}

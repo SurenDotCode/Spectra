@@ -1,2 +1,50 @@
-import {AppError} from '../errors';
-export function inspectWav(bytes:Uint8Array){const b=Buffer.from(bytes);if(b.length<44||b.length>2000000||b.toString('ascii',0,4)!=='RIFF'||b.toString('ascii',8,12)!=='WAVE')throw new AppError('AUDIO',415,'Record a short PCM WAV clip.');let rate=0,channels=0,bits=0,size=0,fmt=false;let end=12;while(end+8<=b.length){const tag=b.toString('ascii',end,end+4);const length=b.readUInt32LE(end+4);if(length>b.length-end-8)throw new AppError('AUDIO',415,'Invalid audio file.');if(tag==='fmt '){if(length<16||b.readUInt16LE(end+8)!==1)throw new AppError('AUDIO',415,'PCM WAV is required.');channels=b.readUInt16LE(end+10);rate=b.readUInt32LE(end+12);bits=b.readUInt16LE(end+22);fmt=true;}if(tag==='data')size+=length;end+=8+length+(length%2);}const seconds=size/(rate*channels*bits/8);if(!fmt||channels!==1||bits!==16||rate!==16000||!Number.isFinite(seconds)||seconds<=0||seconds>20||size%2)throw new AppError('AUDIO',413,'Record mono 16 kHz audio, up to 20 seconds.');return {seconds};}
+import { AppError } from "../errors";
+export function inspectWav(bytes: Uint8Array) {
+  const b = Buffer.from(bytes);
+  if (
+    b.length < 44 ||
+    b.length > 2000000 ||
+    b.toString("ascii", 0, 4) !== "RIFF" ||
+    b.toString("ascii", 8, 12) !== "WAVE"
+  )
+    throw new AppError("AUDIO", 415, "Record a short PCM WAV clip.");
+  let rate = 0,
+    channels = 0,
+    bits = 0,
+    size = 0,
+    fmt = false;
+  let end = 12;
+  while (end + 8 <= b.length) {
+    const tag = b.toString("ascii", end, end + 4);
+    const length = b.readUInt32LE(end + 4);
+    if (length > b.length - end - 8)
+      throw new AppError("AUDIO", 415, "Invalid audio file.");
+    if (tag === "fmt ") {
+      if (length < 16 || b.readUInt16LE(end + 8) !== 1)
+        throw new AppError("AUDIO", 415, "PCM WAV is required.");
+      channels = b.readUInt16LE(end + 10);
+      rate = b.readUInt32LE(end + 12);
+      bits = b.readUInt16LE(end + 22);
+      fmt = true;
+    }
+    if (tag === "data") size += length;
+    end += 8 + length + (length % 2);
+  }
+  const seconds = size / ((rate * channels * bits) / 8);
+  if (
+    !fmt ||
+    channels !== 1 ||
+    bits !== 16 ||
+    rate !== 16000 ||
+    !Number.isFinite(seconds) ||
+    seconds <= 0 ||
+    seconds > 20 ||
+    size % 2
+  )
+    throw new AppError(
+      "AUDIO",
+      413,
+      "Record mono 16 kHz audio, up to 20 seconds.",
+    );
+  return { seconds };
+}

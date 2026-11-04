@@ -1,17 +1,133 @@
-import 'server-only';
-import {Redis} from '@upstash/redis';
-import {Ratelimit} from '@upstash/ratelimit';
-import {cookies} from 'next/headers';
-import {z} from 'zod';
-import {env} from './env';
-import {assertAccountEnabled} from './audit';
-import {userDb} from './db';
-import {AppError,publicError} from '../errors';
-import {verifyCsrf} from '../security/csrf';
-export function redis(){const e=env();if(!e.UPSTASH_REDIS_REST_URL||!e.UPSTASH_REDIS_REST_TOKEN)throw new AppError('SETUP',503,'Rate limiting is not configured.');return new Redis({url:e.UPSTASH_REDIS_REST_URL,token:e.UPSTASH_REDIS_REST_TOKEN});}
-export async function rate(key:string,limit=30){const limiter=new Ratelimit({redis:redis(),limiter:Ratelimit.slidingWindow(limit,'1 m'),prefix:'spectra:rate'});const r=await limiter.limit(key);if(!r.success)throw new AppError('RATE_LIMIT',429,'Too many requests. Wait a minute and try again.');}
-export async function mutation(request:Request){verifyCsrf(request.headers.get('origin'),env().APP_URL,request.headers.get('x-csrf-token'),(await cookies()).get('spectra-csrf')?.value);}
-export async function authenticated(request:Request,mutate=false,allowMfa=false){if(mutate)await mutation(request);const db=await userDb();const{data:{user},error}=await db.auth.getUser();if(error||!user||!user.email_confirmed_at)throw new AppError('AUTH',401,'Sign in with a verified email to continue.');await assertAccountEnabled(user.id);await rate(`user:${user.id}`,60);const{data:session}=await db.auth.getSession();const token=session.session?.access_token;if(!token)throw new AppError('AUTH',401,'Please sign in again.');const claims=z.object({iat:z.number()}).parse(JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString()));const revoked=await redis().get<number>(`spectra:revoked:${user.id}`);if(revoked&&claims.iat<=revoked)throw new AppError('AUTH',401,'Please sign in again.');if(!allowMfa){const{data,error:mfaError}=await db.auth.mfa.getAuthenticatorAssuranceLevel();if(mfaError)throw new AppError('AUTH',401);if(data.nextLevel==='aal2'&&data.currentLevel!=='aal2')throw new AppError('MFA',403,'Verify your authenticator code in Settings.');}return {db,user};}
-export async function body<T>(request:Request,schema:z.ZodType<T>,max=200000){if(!request.headers.get('content-type')?.startsWith('application/json'))throw new AppError('CONTENT_TYPE',415,'Send JSON.');const reader=request.body?.getReader();if(!reader)throw new AppError('INPUT');const chunks:Uint8Array[]=[];let size=0;while(true){const{value,done}=await reader.read();if(done)break;size+=value.length;if(size>max){await reader.cancel();throw new AppError('SIZE',413,'This request is too large.');}chunks.push(value);}try{return schema.parse(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw new AppError('INPUT',400,'Check the submitted fields and try again.');}}
-export async function handle(action:()=>Promise<Response>){try{return await action();}catch(error){const e=publicError(error);console.error(JSON.stringify({event:'request_failed',code:e.code,requestId:crypto.randomUUID()}));return Response.json({error:e.error,code:e.code},{status:e.status});}}
-
+import "server-only";
+import { Redis } from "@upstash/redis";
+import { Ratelimit } from "@upstash/ratelimit";
+import { cookies } from "next/headers";
+import { z } from "zod";
+import { env } from "./env";
+import { assertAccountEnabled } from "./audit";
+import { userDb } from "./db";
+import { AppError, publicError } from "../errors";
+import { verifyCsrf } from "../security/csrf";
+export function redis() {
+  const e = env();
+  if (!e.UPSTASH_REDIS_REST_URL || !e.UPSTASH_REDIS_REST_TOKEN)
+    throw new AppError("SETUP", 503, "Rate limiting is not configured.");
+  return new Redis({
+    url: e.UPSTASH_REDIS_REST_URL,
+    token: e.UPSTASH_REDIS_REST_TOKEN,
+  });
+}
+export async function rate(key: string, limit = 30) {
+  const limiter = new Ratelimit({
+    redis: redis(),
+    limiter: Ratelimit.slidingWindow(limit, "1 m"),
+    prefix: "spectra:rate",
+  });
+  const r = await limiter.limit(key);
+  if (!r.success)
+    throw new AppError(
+      "RATE_LIMIT",
+      429,
+      "Too many requests. Wait a minute and try again.",
+    );
+}
+export async function mutation(request: Request) {
+  verifyCsrf(
+    request.headers.get("origin"),
+    env().APP_URL,
+    request.headers.get("x-csrf-token"),
+    (await cookies()).get("spectra-csrf")?.value,
+  );
+}
+export async function authenticated(
+  request: Request,
+  mutate = false,
+  allowMfa = false,
+) {
+  if (mutate) await mutation(request);
+  const db = await userDb();
+  const {
+    data: { user },
+    error,
+  } = await db.auth.getUser();
+  if (error || !user || !user.email_confirmed_at)
+    throw new AppError(
+      "AUTH",
+      401,
+      "Sign in with a verified email to continue.",
+    );
+  await assertAccountEnabled(user.id);
+  await rate(`user:${user.id}`, 60);
+  const { data: session } = await db.auth.getSession();
+  const token = session.session?.access_token;
+  if (!token) throw new AppError("AUTH", 401, "Please sign in again.");
+  const claims = z
+    .object({ iat: z.number() })
+    .parse(
+      JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString()),
+    );
+  const revoked = await redis().get<number>(`spectra:revoked:${user.id}`);
+  if (revoked && claims.iat <= revoked)
+    throw new AppError("AUTH", 401, "Please sign in again.");
+  if (!allowMfa) {
+    const { data, error: mfaError } =
+      await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (mfaError) throw new AppError("AUTH", 401);
+    if (data.nextLevel === "aal2" && data.currentLevel !== "aal2")
+      throw new AppError(
+        "MFA",
+        403,
+        "Verify your authenticator code in Settings.",
+      );
+  }
+  return { db, user };
+}
+export async function body<T>(
+  request: Request,
+  schema: z.ZodType<T>,
+  max = 200000,
+) {
+  if (!request.headers.get("content-type")?.startsWith("application/json"))
+    throw new AppError("CONTENT_TYPE", 415, "Send JSON.");
+  const reader = request.body?.getReader();
+  if (!reader) throw new AppError("INPUT");
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > max) {
+      await reader.cancel();
+      throw new AppError("SIZE", 413, "This request is too large.");
+    }
+    chunks.push(value);
+  }
+  try {
+    return schema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+  } catch {
+    throw new AppError(
+      "INPUT",
+      400,
+      "Check the submitted fields and try again.",
+    );
+  }
+}
+export async function handle(action: () => Promise<Response>) {
+  try {
+    return await action();
+  } catch (error) {
+    const e = publicError(error);
+    console.error(
+      JSON.stringify({
+        event: "request_failed",
+        code: e.code,
+        requestId: crypto.randomUUID(),
+      }),
+    );
+    return Response.json(
+      { error: e.error, code: e.code },
+      { status: e.status },
+    );
+  }
+}
