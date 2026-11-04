@@ -250,7 +250,7 @@ button.primary {
   left: 100px;
 }
 .s2 {
-  right: 15px;
+  right: 80px;
   top: 250px;
 }
 .s3 {
@@ -558,4 +558,9 @@ button.secondary,
 .signal-label {
   color: var(--ink);
   background: var(--bg);
+}
+@media (max-width: 900px) {
+  .signal-label {
+    display: none;
+  }
 }
