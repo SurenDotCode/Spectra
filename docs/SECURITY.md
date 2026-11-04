@@ -16,6 +16,8 @@ This is a tested implementation, not a certified ASVS L2 product or an independe
 
 Fixtures contain test-only businesses; production does not import them. The browser suite does **not** complete real signup, OAuth, MFA, provider billing or a live prospect search. It must not be described as a live-provider end-to-end pass. CI, Gitleaks and CodeQL results are recorded separately in FINAL_REPORT.md.
 
+Hosted Supabase verification: all three migrations applied to the newly created empty Spectra project; all 16 tables have RLS and FORCE RLS, and all four privileged RPCs are executable only by the service role. Security advisor returned no lints. Performance advisor reported only unused indexes on the empty database; retain them for the intended access patterns and review [unused-index guidance](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index) after representative traffic. These catalog checks supplement, rather than replace, the 86 local/CI behavioral assertions.
+
 ## ASVS L2-oriented control families
 
 | Family                                  | Implemented controls                                                                                                          | Outstanding verification                                                            |

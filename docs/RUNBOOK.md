@@ -37,6 +37,8 @@ Do not add placeholder secrets to hosted environments. Configure actual values i
 
 ## Supabase setup
 
+Already provisioned for this delivery: free project `oajplaxdwqkhpisanaxh` in the owner-selected organization “Suren's watch”, region `ap-south-1`. The three committed migrations are already applied; migration history versions were aligned with the exact committed filenames after MCP application. Do not apply the schema again manually. Link that project and let the CLI compare history before future pushes. The URL, publishable key and generated cron secret are configured in Vercel; remaining infrastructure/provider secrets and hosted Auth settings still need completion. Preview and production currently point at this empty project; isolate them before storing live user data.
+
 Local database checks require Docker running:
 
 ```sh

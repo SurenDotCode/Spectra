@@ -15,4 +15,4 @@
 - Use lightweight CSS motion with reduced-motion support instead of a Framer Motion runtime dependency. Radix provides evidence tabs; the local button foundation uses shadcn-style variants.
 - Mark industry as inferred, retain source-dated observations separately, and reject unsupported contact values, role claims and integrations. Exact quotes establish provenance, not truth or demand.
 - Keep source data until account deletion, and expire cache after seven days. Owner/legal review must decide retention periods before public launch. No claim of immediate backup erasure is made.
-- Keep a private GitHub repository. If private CodeQL entitlement is unavailable, record the failed gate and stop deployment; do not publish the repository or purchase an upgrade without instruction.
+- The repository was initially private. The owner explicitly authorized making it public on 4 November 2026 to use free CodeQL after GitHub rejected private code-scanning reporting. No paid upgrade was purchased and no security gate was bypassed.
