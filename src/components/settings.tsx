@@ -70,7 +70,7 @@ export function Settings() {
         </div>
       </section>
       <section className="card stack">
-        <h2>Usage & account security</h2>
+        <h2>Usage & security</h2>
         <button
           className="secondary"
           onClick={async () => {
@@ -100,22 +100,45 @@ export function Settings() {
             }
           }}
         >
-          Load usage and authenticator status
+          Load usage & security
         </button>
         {usage.map((x) => (
-          <p key={x.day + x.feature}>
-            {x.day} · {x.feature}: {x.amount}
-          </p>
+          <div className="usage-row" key={x.day + x.feature}>
+            <p>
+              {x.day} · {x.feature}: {x.amount}
+            </p>
+            {Object.entries({
+              research: 5,
+              search: 25,
+              fetch: 100,
+              reasoning: 60,
+              stt_seconds: 300,
+              tts_chars: 6000,
+            })
+              .filter(([feature]) => feature === x.feature)
+              .map(([feature, limit]) => (
+                <div className="row" key={feature}>
+                  <progress
+                    value={x.amount}
+                    max={limit}
+                    aria-label={`${feature} daily usage`}
+                  />
+                  <span className="small muted">
+                    {x.amount} / {limit}
+                  </span>
+                </div>
+              ))}
+          </div>
         ))}
         <p className="small muted">
-          Daily research limit: 5 batches per account. Voice input: 300 seconds.
-          Speech output: 6,000 characters. Global caps also apply.
+          Daily: 5 batches, 300 voice seconds, 6,000 speech characters.
         </p>
+        <p className="small muted">Global caps also apply.</p>
         <button
           className="secondary"
           onClick={() => void action({ action: "enroll" })}
         >
-          Set up authenticator (TOTP)
+          Set up authenticator
         </button>
         {secret ? (
           <p className="notice">
@@ -151,10 +174,7 @@ export function Settings() {
       </section>
       <section className="card stack">
         <h2>Your data</h2>
-        <p>
-          Audio is discarded after transcription. Your notes are labeled
-          user-reported.
-        </p>
+        <p>Audio is discarded after transcription.</p>
         <button
           className="secondary"
           onClick={() => void action({ action: "export" })}
@@ -175,7 +195,7 @@ export function Settings() {
             To permanently delete your account, type DELETE MY SPECTRA DATA
             <input name="confirmation" required />
           </label>
-          <button className="secondary">Delete my data and account</button>
+          <button className="secondary danger">Delete data & account</button>
         </form>
         <button
           className="secondary"

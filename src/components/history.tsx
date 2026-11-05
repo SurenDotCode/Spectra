@@ -25,11 +25,7 @@ export function History() {
       .then((r) => {
         if (active) {
           setItems(r.searches);
-          setMessage(
-            r.searches.length
-              ? ""
-              : "No searches yet. Your next discovery starts with an offer.",
-          );
+          setMessage(r.searches.length ? "" : "No searches yet.");
         }
       })
       .catch((e) => {
@@ -44,10 +40,10 @@ export function History() {
     <div className="stack">
       <div className="row">
         <Link className="button primary" href="/workspace">
-          New discovery ↗
+          Start a search
         </Link>
         <Link className="button secondary" href="/prospects">
-          All saved prospects
+          View saved prospects
         </Link>
       </div>
       <p role="status">{message}</p>
@@ -68,7 +64,7 @@ export function History() {
                 : `/research?id=${x.id}`
             }
           >
-            {x.status === "completed" ? "View prospects" : "Resume research"} →
+            {x.status === "completed" ? "View prospects" : "Resume research"}
           </Link>
         </article>
       ))}
