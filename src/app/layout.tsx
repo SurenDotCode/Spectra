@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AudioLines } from "lucide-react";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "Spectra — Find the reason to reach out",
@@ -20,20 +21,20 @@ export default function RootLayout({
         </a>
         <header className="mast">
           <Link className="brand" href="/">
-            ◈ <span>Spectra</span>
+            <AudioLines size={24} aria-hidden="true" /> <span>Spectra</span>
           </Link>
           <nav aria-label="Main">
             <Link href="/workspace">Workspace</Link>
             <Link href="/history">History</Link>
             <Link href="/settings">Settings</Link>
             <Link className="nav-cta" href="/login">
-              Sign in ↗
+              Sign in
             </Link>
           </nav>
         </header>
         <main id="main">{children}</main>
         <footer>
-          <span>Spectra · Evidence before outreach.</span>
+          <span>No guarantees of replies or sales.</span>
           <div>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
