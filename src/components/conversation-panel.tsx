@@ -25,11 +25,8 @@ export function ConversationPanel({
   const [error, setError] = useState("");
   return (
     <section className="chat stack">
-      <div className="eyebrow">DISCUSS YOUR RESEARCH</div>
-      <p className="small muted">
-        “Compare the first and second.” “Who should I contact?” “Skip this one.”
-      </p>
-      <VoiceInput onTranscript={setText} />
+      <div className="eyebrow">Conversation</div>
+      <p className="small muted">“What about the first one?”</p>
       <form
         className="stack"
         onSubmit={async (e) => {
@@ -61,27 +58,26 @@ export function ConversationPanel({
         }}
       >
         <label>
-          Edit your transcript or type a question
+          Question
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             maxLength={3000}
           />
         </label>
+        <VoiceInput onTranscript={setText} />
         <button
           className="primary"
           disabled={busy || !text.trim() || !ids.length}
         >
-          {busy ? "Reading the evidence…" : "Ask Spectra →"}
+          {busy ? "Reading…" : "Ask"}
         </button>
       </form>
       {answer ? (
         <div aria-live="polite">
           <p>{answer}</p>
           <SpeakButton text={answer} />
-          <p className="small muted">
-            Answered from stored evidence. No additional research was run.
-          </p>
+          <p className="small muted">From saved evidence.</p>
         </div>
       ) : null}
       {error ? <p role="alert">{error}</p> : null}

@@ -1097,3 +1097,16 @@ progress::-webkit-progress-value {
     font-size: 11px;
   }
 }
+
+.prospect-row:not(.focus-card) .prospect-detail {
+  display: none;
+}
+.prospect-detail {
+  gap: 16px;
+}
+.prospect-row:not(.focus-card) .prospect-reason {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

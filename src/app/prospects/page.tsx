@@ -8,8 +8,8 @@ export default async function Page({
   const value = z.uuid().safeParse((await searchParams).search);
   return (
     <section className="page">
-      <div className="eyebrow">SPECTRA / PROSPECT BOARD</div>
-      <h1>A reason to reach out.</h1>
+      <div className="eyebrow">Your research</div>
+      <h1>Prospects</h1>
       <ProspectBoard searchId={value.success ? value.data : undefined} />
     </section>
   );

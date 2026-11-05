@@ -153,12 +153,10 @@ test("board shows provenance, saves, exports, dismisses and prevents script exec
     page.getByText("<script>window.pwned=true</script>").first(),
   ).toBeVisible();
   expect(await page.evaluate(() => Object.hasOwn(window, "pwned"))).toBe(false);
-  await page.getByRole("button", { name: "＋ Shortlist" }).click();
-  await expect(
-    page.getByRole("button", { name: "✓ Shortlisted" }),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Saved" })).toBeVisible();
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: /Export shortlist/ }).click();
+  await page.getByRole("button", { name: /Export CSV/ }).click();
   expect((await download).suggestedFilename()).toBe(
     "spectra-shortlist-2026-11-03.csv",
   );
@@ -169,9 +167,9 @@ test("board shows provenance, saves, exports, dismisses and prevents script exec
         .analyze()
     ).violations,
   ).toEqual([]);
-  await page.getByRole("button", { name: "Dismiss", exact: true }).click();
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "No matching prospects yet." }),
+    page.getByRole("heading", { name: "No matching prospects." }),
   ).toBeVisible();
 });
 test("auth, IDOR and forged mutation attempts fail closed in setup mode", async ({

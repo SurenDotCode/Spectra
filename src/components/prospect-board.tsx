@@ -132,22 +132,19 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
   return (
     <div className="stack">
       <div className="row spread">
-        <p className="muted">
-          Relevance first. Contact information is publicly listed, not
-          deliverability-verified.
-        </p>
+        <p className="muted">Public contacts. Deliverability unverified.</p>
         <div className="row">
           <button className="secondary" onClick={() => void exportCsv()}>
-            Export shortlist ↓
+            Export CSV
           </button>
           {offer ? (
             <Link className="button primary" href={`/research?offer=${offer}`}>
-              Find more prospects ↗
+              Find more
             </Link>
           ) : null}
         </div>
       </div>
-      <div className="card row">
+      <div className="card board-filters">
         <label>
           Status
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -206,16 +203,13 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
           {error}
         </p>
       ) : null}
-      {loading ? <p aria-busy="true">Loading your research…</p> : null}
+      {loading ? <p aria-busy="true">Loading prospects…</p> : null}
       {!loading && !visible.length ? (
         <div className="card empty">
-          <h2>No matching prospects yet.</h2>
-          <p>
-            Broaden your filters or start a research batch. Spectra returns
-            fewer results when evidence is thin.
-          </p>
+          <h2>No matching prospects.</h2>
+          <p>Broaden the filters or start another search.</p>
           <Link className="button primary" href="/workspace">
-            Describe your offer →
+            Describe offer
           </Link>
         </div>
       ) : null}
@@ -225,14 +219,14 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
             <article
               key={p.id}
               id={`prospect-${p.id}`}
-              className={`card stack ${focused === p.id ? "focus-card" : ""}`}
+              className={`card stack prospect-row ${focused === p.id ? "focus-card" : ""}`}
             >
               <div className="row spread">
                 <span className="mono">
                   {String(index + 1).padStart(2, "0")} /{" "}
                   {p.assessment.businessType}
                 </span>
-                <span className="badge">{p.score} / 100 · plausible fit</span>
+                <span className="badge">{p.score} / 100</span>
               </div>
               <button
                 className="prospect-title"
@@ -243,89 +237,92 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
               <p className="small muted">
                 {p.location} · {p.industry} · {ageLabel(p.checkedAt)}
               </p>
-              <SourceLink url={p.url} />
-              <p>
-                <span className="badge">Inference</span>{" "}
-                {p.assessment.explanation}
+              <p className="prospect-reason">
+                {p.assessment.observations[0]?.quote ??
+                  p.assessment.explanation}
               </p>
-              <Tabs.Root defaultValue="verified">
-                <Tabs.List
-                  className="tabs"
-                  aria-label={`Evidence for ${p.name}`}
-                >
-                  <Tabs.Trigger value="verified">
-                    Verified observations
-                  </Tabs.Trigger>
-                  <Tabs.Trigger value="inferred">Inferred</Tabs.Trigger>
-                  <Tabs.Trigger value="unknown">Unknown</Tabs.Trigger>
-                </Tabs.List>
-                <Tabs.Content value="verified">
-                  <ul>
-                    {p.assessment.observations.map((o, i) => (
-                      <li key={i}>
-                        <p>“{o.quote}”</p>
-                        <SourceLink
-                          url={o.sourceUrl}
-                          date={
-                            p.sources.find((s) => s.url === o.sourceUrl)
-                              ?.fetchedAt
-                          }
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="small muted">
-                    Verified means this text appeared in the stored source. It
-                    does not confirm buying intent.
-                  </p>
-                </Tabs.Content>
-                <Tabs.Content value="inferred">
-                  <ul>
-                    {p.assessment.inferences.map((x) => (
-                      <li key={x}>{x}</li>
-                    ))}
-                  </ul>
-                </Tabs.Content>
-                <Tabs.Content value="unknown">
-                  <ul>
-                    {p.assessment.unknowns.map((x) => (
-                      <li key={x}>{x}</li>
-                    ))}
-                  </ul>
-                </Tabs.Content>
-              </Tabs.Root>
-              <details>
-                <summary>Concerns and scoring factors</summary>
-                <h3>Possible mismatches</h3>
-                {p.assessment.mismatches.length ? (
-                  <ul>
-                    {p.assessment.mismatches.map((x) => (
-                      <li key={x}>{x}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>
-                    None identified from available evidence; not a guarantee.
-                  </p>
-                )}
-                <h3>Reasons to skip</h3>
+              <div className="prospect-detail stack">
+                <SourceLink url={p.url} />
                 <p>
-                  {p.assessment.skipReasons.join(" · ") || "None identified."}
+                  <span className="badge">Inference</span>{" "}
+                  {p.assessment.explanation}
                 </p>
-                <ul>
-                  {p.factors.map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-                </ul>
-              </details>
-              <div className="row">
+                <Tabs.Root defaultValue="verified">
+                  <Tabs.List
+                    className="tabs"
+                    aria-label={`Evidence for ${p.name}`}
+                  >
+                    <Tabs.Trigger value="verified">Verified</Tabs.Trigger>
+                    <Tabs.Trigger value="inferred">Inferred</Tabs.Trigger>
+                    <Tabs.Trigger value="unknown">Unknown</Tabs.Trigger>
+                  </Tabs.List>
+                  <Tabs.Content value="verified">
+                    <ul>
+                      {p.assessment.observations.map((o, i) => (
+                        <li key={i}>
+                          <p>“{o.quote}”</p>
+                          <SourceLink
+                            url={o.sourceUrl}
+                            date={
+                              p.sources.find((s) => s.url === o.sourceUrl)
+                                ?.fetchedAt
+                            }
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="small muted">
+                      Source-backed text, not confirmed demand.
+                    </p>
+                  </Tabs.Content>
+                  <Tabs.Content value="inferred">
+                    <ul>
+                      {p.assessment.inferences.map((x) => (
+                        <li key={x}>{x}</li>
+                      ))}
+                    </ul>
+                  </Tabs.Content>
+                  <Tabs.Content value="unknown">
+                    <ul>
+                      {p.assessment.unknowns.map((x) => (
+                        <li key={x}>{x}</li>
+                      ))}
+                    </ul>
+                  </Tabs.Content>
+                </Tabs.Root>
+                <details>
+                  <summary>Concerns & scoring</summary>
+                  <h3>Mismatches</h3>
+                  {p.assessment.mismatches.length ? (
+                    <ul>
+                      {p.assessment.mismatches.map((x) => (
+                        <li key={x}>{x}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>
+                      None identified from available evidence; not a guarantee.
+                    </p>
+                  )}
+                  <h3>Reasons to skip</h3>
+                  <p>
+                    {p.assessment.skipReasons.join(" · ") || "None identified."}
+                  </p>
+                  <ul>
+                    {p.factors.map((x) => (
+                      <li key={x}>{x}</li>
+                    ))}
+                  </ul>
+                </details>
+              </div>
+              <div className="row prospect-actions">
                 <button
                   className="secondary"
                   onClick={() =>
                     void state(p.id, p.status === "saved" ? "new" : "saved")
                   }
                 >
-                  {p.status === "saved" ? "✓ Shortlisted" : "＋ Shortlist"}
+                  {p.status === "saved" ? "Saved" : "Save"}
                 </button>
                 <button
                   className="secondary"
@@ -342,10 +339,10 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
                     )
                   }
                 >
-                  {p.status === "dismissed" ? "Restore" : "Dismiss"}
+                  {p.status === "dismissed" ? "Restore" : "Skip"}
                 </button>
                 <button className="secondary" onClick={() => setFocused(p.id)}>
-                  Discuss & contact →
+                  Discuss
                 </button>
               </div>
             </article>
@@ -379,12 +376,12 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
           ) : null}
           {selected ? (
             <div className="card stack">
-              <div className="eyebrow">FOCUSED PROSPECT</div>
+              <div className="eyebrow">In focus</div>
               <h2>{selected.name}</h2>
               <SpeakButton
                 text={`${selected.assessment.explanation} ${selected.assessment.unknowns[0] ?? "Need is unconfirmed."} ${selected.assessment.question}`}
               />
-              <h3>Public contact channels</h3>
+              <h3>Contacts</h3>
               {selected.assessment.contacts.length ? (
                 selected.assessment.contacts.map((c, i) => (
                   <div key={i}>
@@ -398,12 +395,9 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
                   </div>
                 ))
               ) : (
-                <p className="muted">
-                  Not found. Use the business website to look for a suitable
-                  public channel.
-                </p>
+                <p className="muted">No public contact found.</p>
               )}
-              <h3>People to approach</h3>
+              <h3>People</h3>
               {selected.assessment.people.length ? (
                 selected.assessment.people.map((p, i) => (
                   <div key={i}>
@@ -428,16 +422,13 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
                   </div>
                 ))
               ) : (
-                <p className="muted">
-                  No relevant person could be verified. Use an available
-                  business contact channel; current employment is unconfirmed.
-                </p>
+                <p className="muted">No relevant person verified.</p>
               )}
               <div className="notice">
                 <strong>Ask this first</strong>
                 <p>{selected.assessment.question}</p>
               </div>
-              <h3>What did you learn?</h3>
+              <h3>Outreach notes</h3>
               <VoiceInput onTranscript={setNote} />
               <label>
                 Your outreach note
@@ -504,8 +495,7 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
                 Save outcome
               </button>
               <p className="small muted">
-                Your notes are user-reported, separate from public evidence.
-                Nothing is sent to the business.
+                User-reported notes. Nothing is sent.
               </p>
             </div>
           ) : null}
