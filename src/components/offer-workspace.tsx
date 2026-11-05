@@ -53,26 +53,26 @@ export function OfferWorkspace() {
     }
   }
   return (
-    <div className="grid">
+    <div className="offer-session">
       <div className="stack">
-        <div className="card">
-          <div className="eyebrow">01 / DESCRIBE YOUR OFFER</div>
+        <div className="card session-card">
+          <label className="session-transcript">
+            Your offer
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={20000}
+              placeholder="Talk, or type what you sell."
+            />
+          </label>
           <VoiceInput
             onTranscript={(text) =>
               setDescription((s) => (s ? `${s}\n${text}` : text))
             }
           />
-          <label>
-            What did you build?
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={20000}
-              placeholder="What does it do, who is it for, and what does it need to work?"
-            />
-          </label>
-          <label className="small">
-            Or upload a README or workflow (MD, TXT, PDF · 2 MB max)
+
+          <label className="small session-upload">
+            Upload a document · MD, TXT, PDF · 2 MB
             <input
               type="file"
               accept=".md,.txt,.pdf"
@@ -111,8 +111,8 @@ export function OfferWorkspace() {
             />
           </label>
         </div>
-        <div className="card stack">
-          <div className="eyebrow">02 / WHERE CAN YOU HELP?</div>
+        <div className="card preferences">
+          <div className="eyebrow">Your market</div>
           <label>
             Search reach
             <select
@@ -129,7 +129,7 @@ export function OfferWorkspace() {
             </select>
           </label>
           <label>
-            Your location
+            Location
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -138,7 +138,7 @@ export function OfferWorkspace() {
             />
           </label>
           <label>
-            Countries you can serve
+            Countries
             <input
               value={countries}
               onChange={(e) => setCountries(e.target.value)}
@@ -147,7 +147,7 @@ export function OfferWorkspace() {
             />
           </label>
           <label>
-            Supported languages
+            Languages
             <input
               value={languages}
               onChange={(e) => setLanguages(e.target.value)}
@@ -159,13 +159,12 @@ export function OfferWorkspace() {
             disabled={busy || description.trim().length < 20}
             onClick={() => void understand()}
           >
-            {busy ? "Understanding your offer…" : "Build my offer profile ↗"}
+            {busy ? "Thinking…" : "Review offer"}
           </button>
         </div>
       </div>
       <div className="stack">
-        <div className="card">
-          <div className="eyebrow">03 / REVIEW BEFORE RESEARCH</div>
+        <div className="card confirmation">
           {profile ? (
             <form
               className="stack"
@@ -188,10 +187,10 @@ export function OfferWorkspace() {
                 }
               }}
             >
-              <h2>Here’s what I understand.</h2>
+              <h2>Review your offer</h2>
               {questions.length ? (
                 <div className="notice">
-                  <p>Clarify these gaps by editing the profile:</p>
+                  <p>Fill in the gaps:</p>
                   <ul>
                     {questions.map((q) => (
                       <li key={q}>{q}</li>
@@ -221,22 +220,15 @@ export function OfferWorkspace() {
                 ),
               )}
               <p className="small muted">
-                Confirming saves a version of this profile. Research starts only
-                when you request it on the next screen.
+                Review now. Start research on the next screen.
               </p>
               <button className="primary" disabled={busy}>
-                Confirm profile →
+                Looks right
               </button>
             </form>
           ) : (
             <div className="empty">
-              <h2>First, a clear picture.</h2>
-              <p className="muted">
-                Your offer profile will appear here. You’ll review capabilities,
-                integrations, price, and limitations before Spectra researches
-                any business.
-              </p>
-              <div className="badge">No research without your confirmation</div>
+              <h2>Your offer summary appears here.</h2>
             </div>
           )}
         </div>

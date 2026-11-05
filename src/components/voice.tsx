@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
+import { Mic, Square, Volume2 } from "lucide-react";
 import { z } from "zod";
 import { api } from "@/lib/client-api";
 export function toBase64(bytes: Uint8Array) {
@@ -85,7 +86,7 @@ export function VoiceInput({
         z.object({ text: z.string() }),
       );
       onTranscript(text);
-      setMessage("Transcript ready. Edit it before submitting.");
+      setMessage("Transcript ready. Edit before submitting.");
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Transcription failed.");
     } finally {
@@ -145,7 +146,9 @@ export function VoiceInput({
           const data = new Uint8Array(analyser.frequencyBinCount);
           analyser.getByteTimeDomainData(data);
           g.clearRect(0, 0, c.width, c.height);
-          g.strokeStyle = "#658444";
+          g.strokeStyle = getComputedStyle(document.documentElement)
+            .getPropertyValue("--color-violet-soft")
+            .trim();
           g.beginPath();
           data.forEach((value, index) => {
             const x = (index * c.width) / data.length,
@@ -167,8 +170,8 @@ export function VoiceInput({
     }
   }
   return (
-    <div className="stack">
-      <div className="row spread">
+    <div className="voice-control" data-recording={recording} data-busy={busy}>
+      <div className="voice-layout">
         <label>
           Speech language
           <select
@@ -204,17 +207,20 @@ export function VoiceInput({
           disabled={busy}
           onClick={() => void (recording ? stop() : start())}
         >
-          {recording ? "■" : "●"}
+          {recording ? (
+            <Square aria-hidden="true" />
+          ) : (
+            <Mic aria-hidden="true" />
+          )}
         </button>
         <canvas ref={canvas} width={160} height={45} aria-hidden="true" />
       </div>
-      <p className="small muted" role="status">
+      <p className="small voice-state" role="status">
         {busy
           ? "Processing…"
           : recording
-            ? "Recording. Tap stop when finished."
-            : message ||
-              "Tap to record · up to 20 seconds · audio is discarded"}
+            ? "Listening. Tap to stop."
+            : message || "Tap to talk · 20 seconds maximum"}
       </p>
     </div>
   );
@@ -268,17 +274,18 @@ export function SpeakButton({ text }: { text: string }) {
   }
   return (
     <div>
-      <div className="row">
+      <div className="speech-actions">
         <button
           type="button"
           className="secondary"
           disabled={busy || !text}
           onClick={() => void speak()}
         >
-          {busy ? "Preparing speech…" : "Listen with Timbre"}
+          <Volume2 size={16} aria-hidden="true" />
+          {busy ? "Preparing…" : "Listen"}
         </button>
         <button type="button" className="secondary" onClick={stop}>
-          ■ Stop speaking
+          <Square size={14} aria-hidden="true" /> Stop speaking
         </button>
       </div>
       {error ? (

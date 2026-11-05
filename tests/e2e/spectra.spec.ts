@@ -76,7 +76,7 @@ test("landing and onboarding are accessible and mobile responsive", async ({
     ).violations,
   ).toEqual([]);
   await page.getByRole("link", { name: /Describe what you built/ }).click();
-  await expect(page.getByLabel("What did you build?")).toBeVisible();
+  await expect(page.getByLabel("Your offer")).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     await page.evaluate(
@@ -114,13 +114,13 @@ test("text offer is edited and confirmed before research; quota message is expli
   );
   await page.goto("/workspace");
   await page
-    .getByLabel("What did you build?")
+    .getByLabel("Your offer")
     .fill(
       "I built personalized influencer email follow-up automation for brands.",
     );
-  await page.getByRole("button", { name: /Build my offer/ }).click();
+  await page.getByRole("button", { name: /Review offer/ }).click();
   await expect(page.getByText("Does it manage replies?")).toBeVisible();
-  await page.getByRole("button", { name: /Confirm profile/ }).click();
+  await page.getByRole("button", { name: /Looks right/ }).click();
   await expect(page).toHaveURL(/research\?offer=/);
   await page.getByRole("button", { name: /Start real research/ }).click();
   await expect(
@@ -229,12 +229,12 @@ test("voice recording yields an editable transcript and stops its microphone", a
     page.getByRole("button", { name: "Stop recording" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Stop recording" }).click();
-  await expect(page.getByLabel("What did you build?")).toHaveValue(
+  await expect(page.getByLabel("Your offer")).toHaveValue(
     "I built a creator outreach tool.",
   );
   expect(submitted).toBe(true);
-  await page.getByLabel("What did you build?").fill("Edited before submitting");
-  await expect(page.getByLabel("What did you build?")).toHaveValue(
+  await page.getByLabel("Your offer").fill("Edited before submitting");
+  await expect(page.getByLabel("Your offer")).toHaveValue(
     "Edited before submitting",
   );
   await expect(
