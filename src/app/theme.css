@@ -1,0 +1,131 @@
+:root {
+  --color-night: #080711;
+  --color-night-raised: #100d1d;
+  --color-violet: #8b5cf6;
+  --color-violet-deep: #6d3bff;
+  --color-violet-soft: #b66dff;
+  --color-magenta: #d946ef;
+  --color-amber: #f5b85a;
+  --color-text: #f3f0fa;
+  --color-secondary: #b9b2ca;
+  --color-tertiary: #a39ab6;
+  --color-glass: rgba(25, 20, 42, 0.84);
+  --color-glass-raised: rgba(40, 31, 62, 0.88);
+  --color-solid: #191426;
+  --color-border: rgba(225, 212, 255, 0.15);
+  --color-highlight: rgba(242, 230, 255, 0.25);
+  --color-field: rgba(8, 6, 18, 0.55);
+  --color-action: #f5f1ff;
+  --color-action-text: #201033;
+  --color-focus: #c6a6ff;
+  --color-verified: #a1dfc2;
+  --color-inferred: #e9cc98;
+  --color-unknown: #c3bdcf;
+  --color-concern: #f2b0bd;
+  --color-concern-bg: #35202c;
+  --glow-violet: rgba(109, 59, 255, 0.24);
+  --glow-magenta: rgba(217, 70, 239, 0.08);
+  --glow-amber: rgba(245, 184, 90, 0.06);
+  --glass-shadow:
+    0 24px 64px rgba(18, 4, 43, 0.28), inset 0 1px 0 var(--color-highlight);
+  --orb-shadow:
+    0 0 64px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --glass-blur: 20px;
+  --motion: 200ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  --font-ui: "Avenir Next", "Segoe UI", Arial, sans-serif;
+}
+.theme-light {
+  --color-night: #f5f1fb;
+  --color-night-raised: #eee7f8;
+  --color-text: #251b36;
+  --color-secondary: #5d516e;
+  --color-tertiary: #6c5f7d;
+  --color-glass: rgba(255, 252, 255, 0.86);
+  --color-glass-raised: rgba(255, 252, 255, 0.95);
+  --color-solid: #faf7ff;
+  --color-border: rgba(70, 39, 106, 0.2);
+  --color-highlight: rgba(255, 255, 255, 0.9);
+  --color-field: rgba(255, 255, 255, 0.7);
+  --color-action: #38204f;
+  --color-action-text: #fffaff;
+  --color-focus: #703ec4;
+  --color-verified: #24654b;
+  --color-inferred: #795015;
+  --color-unknown: #5d526b;
+  --color-concern: #9a344b;
+  --color-concern-bg: #f7e7ef;
+  --glow-violet: rgba(139, 92, 246, 0.13);
+  --glow-magenta: rgba(217, 70, 239, 0.05);
+  --glow-amber: rgba(245, 184, 90, 0.08);
+  --glass-shadow:
+    0 24px 64px rgba(65, 33, 97, 0.07), inset 0 1px 0 var(--color-highlight);
+}
+.design-showcase {
+  background: var(--color-night);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  padding: var(--space-12);
+  min-height: 100vh;
+}
+.design-showcase h1 {
+  font-family: var(--font-ui);
+  font-size: 48px;
+  letter-spacing: -0.04em;
+}
+.design-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--space-6);
+}
+.design-swatch {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: var(--space-6);
+  background: var(--color-glass);
+}
+.design-swatch p {
+  color: var(--color-secondary);
+}
+.design-glow {
+  background:
+    radial-gradient(ellipse at 20% 0%, var(--glow-violet), transparent 65%),
+    var(--color-night);
+}
+.design-primary {
+  background: var(--color-action);
+  color: var(--color-action-text);
+  border: 0;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+}
+.design-verified {
+  color: var(--color-verified);
+}
+.design-inferred {
+  color: var(--color-inferred);
+}
+.design-unknown {
+  color: var(--color-unknown);
+}
+.design-concern {
+  color: var(--color-concern);
+}
+
+.design-showcase { --bg:var(--color-night);--panel:var(--color-glass);--ink:var(--color-text);--muted:var(--color-secondary);--line:var(--color-border);--soft:var(--color-glass-raised);--accent:var(--color-violet); }
+.design-showcase .orb {background:radial-gradient(circle at 35% 20%,var(--color-violet-soft),var(--color-violet-deep));color:var(--color-text);box-shadow:var(--orb-shadow);opacity:1;}
+.design-showcase .secondary {border-radius:var(--radius-pill);}
+.design-showcase input,.design-showcase textarea {border-radius:var(--radius-md);}
