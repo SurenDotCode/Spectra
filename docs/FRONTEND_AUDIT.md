@@ -29,3 +29,29 @@ Scope: presentation, copy, frontend-only tests and the three requested design do
 - Runtime provider errors, generated answers and genuine evidence are retained verbatim. Backend strings and schemas are immutable; their length exceptions are documented in COPY.md.
 
 Final verification and changed-file summary will be appended after checks.
+
+## Verification — 5 November 2026
+
+- Typecheck, ESLint, production build and all 67 existing unit/integration/security tests passed. Existing non-browser test files were not edited.
+- Local Supabase: both original pgTAP files passed, 86 assertions, including isolation and RLS. Migrations and policies are unchanged.
+- All 13 Playwright tests passed. Original security assertions remain unchanged. Added coverage exercises the typed offer → confirmation → research → prospects → first-prospect discussion flow, active speech stop and cancellation of a late speech response.
+- Responsive checks cover 360, 390, 768, 1024, 1280 and 1536px across ten screens. No horizontal overflow. Axe checks at 390 and 1280px include WCAG 2 A/AA, 2.1 AA and 2.2 AA tags, plus light settings and reduced-motion rendering; no reported violations. Automated checks do not constitute a complete accessibility certification.
+- Screenshots capture landing, session, confirmation, research, prospects, history, settings in both themes, sign-in, legal pages and 404. Research/prospect/history/usage screenshots use explicitly named test fixtures, not production data.
+- Manual screenshot review corrected mobile meter width and spacing, and ensured the landing fits one viewport. Source details remain scrollable within the desktop detail panel.
+- Runtime dependency audit: zero known vulnerabilities. Tracked-file secret pattern scan passed. No dependency or lockfile changes.
+- AST comparison of every existing frontend `api` and `readApi` call against the starting commit found identical call expressions, ignoring formatting only.
+- `/design` is inaccessible in production and checked by browser tests. No backend behavior, routes, schemas, security headers, auth handlers, quotas, environment variables or infrastructure configuration changed.
+
+## Upstream preservation
+
+During the work, the owner added commit `f64ad2afa575c23a4c79639fe3c65e61bfc00988` (`Create gitignore`) on GitHub. Preserve that independent file unchanged when syncing. The redesign-only comparison uses that commit as its final base; the original starting commit remains recorded above. The extra upstream file is not part of this redesign.
+
+## Scope summary
+
+The patch consists only of app/component TSX presentation, the token/global CSS files, the local SVG favicon, frontend-only browser tests, and the three allowed new documents. Backend, database, auth callbacks, client API library, security/provider/research libraries, configuration, package manifests/lockfiles and non-browser tests remain byte-for-byte identical to the original starting commit.
+
+Needs owner decision only for future behavior work: live streaming transcripts, hold-Space recording, automatic speech interruption, voice editing of profile fields, and a recording demo on the landing page. These were deliberately excluded by the highest-priority presentation-only scope. Existing setup-mode/provider activation requirements are unchanged.
+
+Final local mobile Lighthouse run: Performance 99, Accessibility 100, Best Practices 100, SEO 100. This measures the production build on localhost with simulated mobile throttling, not a guarantee of deployed field performance.
+
+Redesign diff summary: 27 files — 23 frontend presentation files, one frontend-only browser test file, and the three permitted documents. No new packages or lockfile changes.
