@@ -17,6 +17,7 @@
   --color-field: rgba(8, 6, 18, 0.55);
   --color-action: #f5f1ff;
   --color-action-text: #201033;
+  --color-on-violet: #f5f1ff;
   --color-focus: #c6a6ff;
   --color-verified: #a1dfc2;
   --color-inferred: #e9cc98;
@@ -49,6 +50,7 @@
   --font-ui: "Avenir Next", "Segoe UI", Arial, sans-serif;
 }
 .theme-light {
+  --color-violet-soft: #7440b8;
   --color-night: #f5f1fb;
   --color-night-raised: #eee7f8;
   --color-text: #251b36;
@@ -125,7 +127,29 @@
   color: var(--color-concern);
 }
 
-.design-showcase { --bg:var(--color-night);--panel:var(--color-glass);--ink:var(--color-text);--muted:var(--color-secondary);--line:var(--color-border);--soft:var(--color-glass-raised);--accent:var(--color-violet); }
-.design-showcase .orb {background:radial-gradient(circle at 35% 20%,var(--color-violet-soft),var(--color-violet-deep));color:var(--color-text);box-shadow:var(--orb-shadow);opacity:1;}
-.design-showcase .secondary {border-radius:var(--radius-pill);}
-.design-showcase input,.design-showcase textarea {border-radius:var(--radius-md);}
+.design-showcase {
+  --bg: var(--color-night);
+  --panel: var(--color-glass);
+  --ink: var(--color-text);
+  --muted: var(--color-secondary);
+  --line: var(--color-border);
+  --soft: var(--color-glass-raised);
+  --accent: var(--color-violet);
+}
+.design-showcase .orb {
+  background: radial-gradient(
+    circle at 35% 20%,
+    var(--color-violet-soft),
+    var(--color-violet-deep)
+  );
+  color: var(--color-text);
+  box-shadow: var(--orb-shadow);
+  opacity: 1;
+}
+.design-showcase .secondary {
+  border-radius: var(--radius-pill);
+}
+.design-showcase input,
+.design-showcase textarea {
+  border-radius: var(--radius-md);
+}

@@ -842,14 +842,17 @@ summary {
 }
 .usage-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   gap: 8px;
   font-size: 12px;
 }
 .usage-row progress {
-  grid-column: 1/-1;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 6px;
+}
+.usage-row > .row {
+  flex-wrap: nowrap;
 }
 progress {
   accent-color: var(--color-violet);
@@ -1045,7 +1048,7 @@ progress::-webkit-progress-value {
   }
   .card,
   .chat {
-    padding: 20px;
+    padding: 24px;
   }
   .hero {
     gap: 16px;
@@ -1109,4 +1112,35 @@ progress::-webkit-progress-value {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Keep the entrance within the viewport without fixing content height. */
+body:has(.hero) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+body:has(.hero) > .mast,
+body:has(.hero) > footer {
+  width: 100%;
+}
+body:has(.hero) > main {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+}
+body:has(.hero) .hero {
+  min-height: 0;
+}
+.session-card .voice-control {
+  padding: 16px 0;
+}
+.session-card .voice-control canvas {
+  height: 24px;
+}
+.orb {
+  color: var(--color-on-violet);
+}
+.danger {
+  color: var(--color-concern);
 }

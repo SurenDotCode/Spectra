@@ -122,11 +122,7 @@ export function LoginForm({
           className="primary"
           disabled={busy || (mode === "signup" && !captcha)}
         >
-          {busy
-            ? "Signing in…"
-            : mode === "signin"
-              ? "Sign in"
-              : "Create account"}
+          {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
         </button>
       </form>
       <button
