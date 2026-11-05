@@ -88,57 +88,50 @@ export function ResearchProgress({
   return (
     <div className="card stack">
       <div className="row spread">
-        <h2>Follow the signals.</h2>
-        <span className="badge">{job?.status ?? "Ready when you are"}</span>
+        <h2>Progress</h2>
+        <span className="badge">{job?.status ?? "Ready"}</span>
       </div>
-      <p className="muted">
-        Up to 20 candidates, investigated individually. At most five supported
-        matches. You can leave and resume from History.
-      </p>
-      {["Discovery", "Investigation", "Contact lookup", "Ranking"].map(
-        (name, i) => (
-          <div
-            className={`stage ${(job?.stage ?? -1) > i ? "complete" : ""}`}
-            key={name}
-          >
-            <div className="row spread">
-              <h3>
-                {i + 1}. {name}
-              </h3>
-              <span className="small">
-                {(job?.stage ?? -1) > i
-                  ? "Complete"
-                  : job?.stage === i
-                    ? "In progress"
-                    : "Waiting"}
-              </span>
-            </div>
-            <p className="small muted">
-              {state?.stages.filter(
-                (s) => s.stage === i && s.status === "completed",
-              ).length ?? 0}{" "}
-              completed items ·{" "}
-              {state?.stages.filter(
-                (s) => s.stage === i && s.status === "failed",
-              ).length ?? 0}{" "}
-              failed items
-            </p>
+      {["Finding", "Reading", "Contacts", "Ranking"].map((name, i) => (
+        <div
+          className={`stage ${(job?.stage ?? -1) > i ? "complete" : ""}`}
+          key={name}
+        >
+          <div className="row spread">
+            <h3>
+              {i + 1}. {name}
+            </h3>
+            <span className="small">
+              {(job?.stage ?? -1) > i
+                ? "Complete"
+                : job?.stage === i
+                  ? "In progress"
+                  : "Waiting"}
+            </span>
           </div>
-        ),
-      )}
+          <p className="small muted">
+            {state?.stages.filter(
+              (s) => s.stage === i && s.status === "completed",
+            ).length ?? 0}{" "}
+            done ·{" "}
+            {state?.stages.filter((s) => s.stage === i && s.status === "failed")
+              .length ?? 0}{" "}
+            failed
+          </p>
+        </div>
+      ))}
       {!id ? (
         <button
           className="primary"
           disabled={!offerId || busy}
           onClick={() => void start()}
         >
-          {busy ? "Starting…" : "Start real research →"}
+          {busy ? "Starting…" : "Find prospects"}
         </button>
       ) : null}
       {id && job?.status !== "completed" ? (
         <div className="row">
           <button className="secondary" onClick={() => setRun((r) => !r)}>
-            {run ? "Pause local processing" : "Resume processing"}
+            {run ? "Pause processing" : "Resume processing"}
           </button>
           {["failed", "quota"].includes(job?.status ?? "") ? (
             <button
@@ -159,14 +152,14 @@ export function ResearchProgress({
                 }
               }}
             >
-              Retry unfinished step
+              Retry
             </button>
           ) : null}
         </div>
       ) : null}
       {job?.status === "completed" ? (
         <Link className="button primary" href={`/prospects?search=${id}`}>
-          Open prospect board ↗
+          View prospects
         </Link>
       ) : null}
       {job?.data.reason ? <p className="notice">{job.data.reason}</p> : null}

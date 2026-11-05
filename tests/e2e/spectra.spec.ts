@@ -122,7 +122,7 @@ test("text offer is edited and confirmed before research; quota message is expli
   await expect(page.getByText("Does it manage replies?")).toBeVisible();
   await page.getByRole("button", { name: /Looks right/ }).click();
   await expect(page).toHaveURL(/research\?offer=/);
-  await page.getByRole("button", { name: /Start real research/ }).click();
+  await page.getByRole("button", { name: "Find prospects" }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "daily batch limit" }),
   ).toBeVisible();

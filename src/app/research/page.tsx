@@ -10,8 +10,7 @@ export default async function Page({
     id = z.uuid().safeParse(raw.id);
   return (
     <section className="page prose">
-      <div className="eyebrow">SPECTRA / RESEARCH</div>
-      <h1>A shortlist with substance.</h1>
+      <h1>Research</h1>
       <ResearchProgress
         offerId={offer.success ? offer.data : undefined}
         initialId={id.success ? id.data : undefined}
