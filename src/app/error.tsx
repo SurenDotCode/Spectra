@@ -7,10 +7,7 @@ export default function ErrorPage({
 }) {
   return (
     <section className="page empty">
-      <h1>Something interrupted this view.</h1>
-      <p>
-        Your saved work remains in your account. Try loading this view again.
-      </p>
+      <h1>This view couldn’t load.</h1>
       <button className="primary" onClick={reset}>
         Try again
       </button>

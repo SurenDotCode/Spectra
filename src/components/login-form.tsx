@@ -123,10 +123,10 @@ export function LoginForm({
           disabled={busy || (mode === "signup" && !captcha)}
         >
           {busy
-            ? "Please wait…"
+            ? "Signing in…"
             : mode === "signin"
-              ? "Sign in to Spectra"
-              : "Create Spectra account"}
+              ? "Sign in"
+              : "Create account"}
         </button>
       </form>
       <button
