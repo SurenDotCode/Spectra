@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { api } from "@/lib/client-api";
-import { offerSchema, type Offer } from "@/lib/schemas";
-import { VoiceInput, SpeakButton, toBase64 } from "./voice";
+import { offerSchema } from "@/lib/schemas";
+import { VoiceInput, toBase64 } from "./voice";
 export function OfferWorkspace() {
   const router = useRouter();
   const [description, setDescription] = useState("");
@@ -12,11 +12,19 @@ export function OfferWorkspace() {
   const [countries, setCountries] = useState("");
   const [languages, setLanguages] = useState("English");
   const [scope, setScope] = useState<"nearby" | "worldwide" | "both">("both");
-  const [profile, setProfile] = useState<Offer | null>(null);
-  const [questions, setQuestions] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  async function understand() {
+  const active = useRef<AbortController | null>(null);
+  useEffect(() => () => active.current?.abort(), []);
+  function cancel() {
+    active.current?.abort();
+    active.current = null;
+    setBusy(false);
+  }
+  async function understand(value = description) {
+    cancel();
+    const controller = new AbortController();
+    active.current = controller;
     setBusy(true);
     setMessage("");
     try {
@@ -24,7 +32,7 @@ export function OfferWorkspace() {
         "/api/offers",
         {
           action: "understand",
-          description,
+          description: value,
           preferences: {
             location,
             countries: countries
@@ -41,15 +49,36 @@ export function OfferWorkspace() {
           },
         },
         z.object({ profile: offerSchema, questions: z.array(z.string()) }),
+        controller.signal,
       );
-      setProfile(r.profile);
-      setQuestions(r.questions);
+      const saved = await api(
+        "/api/offers",
+        { action: "confirm", profile: r.profile },
+        z.object({ id: z.uuid(), profile: offerSchema }),
+        controller.signal,
+      );
+      const research = await api(
+        "/api/research",
+        {
+          action: "start",
+          offerId: saved.id,
+          idempotencyKey: crypto.randomUUID(),
+        },
+        z.object({ id: z.uuid() }),
+        controller.signal,
+      );
+      controller.signal.throwIfAborted();
+      router.push(`/research?id=${research.id}&run=1`);
     } catch (e) {
+      if (controller.signal.aborted) return;
       setMessage(
         e instanceof Error ? e.message : "Unable to understand this offer.",
       );
     } finally {
-      setBusy(false);
+      if (active.current === controller) {
+        active.current = null;
+        setBusy(false);
+      }
     }
   }
   return (
@@ -60,16 +89,27 @@ export function OfferWorkspace() {
             Your offer
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                cancel();
+                setDescription(e.target.value);
+              }}
               maxLength={20000}
               placeholder="Talk, or type what you sell."
             />
           </label>
           <VoiceInput
-            onTranscript={(text) =>
-              setDescription((s) => (s ? `${s}\n${text}` : text))
-            }
+            autoSubmit
+            onTranscript={(text) => {
+              const value = description ? `${description}\n${text}` : text;
+              setDescription(value);
+              void understand(value);
+            }}
           />
+          {busy ? (
+            <button type="button" className="secondary" onClick={cancel}>
+              Stop and edit
+            </button>
+          ) : null}
 
           <label className="small session-upload">
             Upload a document · MD, TXT, PDF · 2 MB
@@ -159,79 +199,11 @@ export function OfferWorkspace() {
             disabled={busy || description.trim().length < 20}
             onClick={() => void understand()}
           >
-            {busy ? "Thinking…" : "Review offer"}
+            {busy ? "Starting research…" : "Find prospects"}
           </button>
         </div>
       </div>
       <div className="stack">
-        <div className="card confirmation">
-          {profile ? (
-            <form
-              className="stack"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setBusy(true);
-                try {
-                  const r = await api(
-                    "/api/offers",
-                    { action: "confirm", profile },
-                    z.object({ id: z.uuid(), profile: offerSchema }),
-                  );
-                  router.push(`/research?offer=${r.id}`);
-                } catch (error) {
-                  setMessage(
-                    error instanceof Error ? error.message : "Could not save.",
-                  );
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              <h2>Review your offer</h2>
-              {questions.length ? (
-                <div className="notice">
-                  <p>Fill in the gaps:</p>
-                  <ul>
-                    {questions.map((q) => (
-                      <li key={q}>{q}</li>
-                    ))}
-                  </ul>
-                  <SpeakButton text={questions.join(" ")} />
-                </div>
-              ) : null}
-              {Object.entries(profile).map(([key, value]) =>
-                key === "scope" ? null : (
-                  <label key={key}>
-                    {key.replace(/([A-Z])/g, " $1")}
-                    <textarea
-                      rows={2}
-                      value={Array.isArray(value) ? value.join("\n") : value}
-                      maxLength={1500}
-                      onChange={(e) =>
-                        setProfile({
-                          ...profile,
-                          [key]: Array.isArray(value)
-                            ? e.target.value.split("\n").filter(Boolean)
-                            : e.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                ),
-              )}
-              <p className="small muted">
-                Review now. Start research on the next screen.
-              </p>
-              <button className="primary" disabled={busy}>
-                Looks right
-              </button>
-            </form>
-          ) : (
-            <div className="empty">
-              <h2>Your offer summary appears here.</h2>
-            </div>
-          )}
-        </div>
         <p role="status" className={message ? "notice" : ""}>
           {message}
         </p>

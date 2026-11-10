@@ -12,6 +12,7 @@ export default async function Page({
     <section className="page prose">
       <h1>Research</h1>
       <ResearchProgress
+        autoRun={raw.run === "1"}
         offerId={offer.success ? offer.data : undefined}
         initialId={id.success ? id.data : undefined}
       />

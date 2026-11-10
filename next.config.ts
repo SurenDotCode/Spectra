@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
+  distDir: process.env.SPECTRA_BUILD_DIR || ".next",
   poweredByHeader: false,
   reactStrictMode: true,
   experimental: { cpus: 2 },

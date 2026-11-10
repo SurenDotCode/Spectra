@@ -8,7 +8,12 @@ export interface TtsProvider {
 }
 export interface ReasoningProvider {
   readonly name: string;
-  generate<T>(task: string, data: unknown, schema: z.ZodType<T>): Promise<T>;
+  generate<T>(
+    task: string,
+    data: unknown,
+    schema: z.ZodType<T>,
+    signal?: AbortSignal,
+  ): Promise<T>;
 }
 export interface SearchProvider {
   search(query: string): Promise<Source[]>;

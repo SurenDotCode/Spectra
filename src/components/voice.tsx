@@ -39,8 +39,10 @@ function pcmWav(chunks: Float32Array[]) {
 }
 export function VoiceInput({
   onTranscript,
+  autoSubmit = false,
 }: {
   onTranscript: (text: string) => void;
+  autoSubmit?: boolean;
 }) {
   const [recording, setRecording] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -86,7 +88,11 @@ export function VoiceInput({
         z.object({ text: z.string() }),
       );
       onTranscript(text);
-      setMessage("Transcript ready. Edit before submitting.");
+      setMessage(
+        autoSubmit
+          ? "Sent. Edit the transcript to stop and correct it."
+          : "Transcript ready. Edit before submitting.",
+      );
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Transcription failed.");
     } finally {
@@ -125,10 +131,23 @@ export function VoiceInput({
       node.connect(silent).connect(ctx.destination);
       const chunks: Float32Array[] = [];
       let count = 0;
+      let speechSamples = 0;
+      let quietSamples = 0;
       node.port.onmessage = (e: MessageEvent<Float32Array>) => {
         if (count + e.data.length <= 320000) {
           chunks.push(e.data);
           count += e.data.length;
+        }
+        if (autoSubmit && active.current) {
+          const rms = Math.sqrt(
+            e.data.reduce((sum, value) => sum + value * value, 0) /
+              e.data.length,
+          );
+          if (rms > 0.015) {
+            speechSamples += e.data.length;
+            quietSamples = 0;
+          } else quietSamples += e.data.length;
+          if (speechSamples > 4800 && quietSamples > 24000) void stop();
         }
       };
       active.current = {

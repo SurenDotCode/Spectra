@@ -30,18 +30,32 @@ export async function GET(request: Request) {
         const state = states.data?.find((s) => s.business_id === r.id);
         return prospectSchema.parse({ ...p, status: state?.status ?? "new" });
       })
+      .filter(
+        (p) =>
+          p.assessment.buyerRole === undefined ||
+          p.assessment.buyerRole === "buyer",
+      )
       .sort((a, b) => b.score - a.score || a.domain.localeCompare(b.domain));
     let offerId: string | undefined;
+    let searchSummary: { status: string; reason: string } | undefined;
     if (q.search) {
       const result = await db
         .from("searches")
-        .select("offer_id")
+        .select("offer_id,status,data")
         .eq("id", q.search)
         .eq("user_id", user.id)
         .maybeSingle();
       offerId = result.data?.offer_id;
+      if (result.data)
+        searchSummary = {
+          status: result.data.status,
+          reason:
+            typeof result.data.data?.reason === "string"
+              ? result.data.data.reason
+              : "",
+        };
     }
-    return Response.json({ prospects: list, offerId });
+    return Response.json({ prospects: list, offerId, searchSummary });
   });
 }
 export async function POST(request: Request) {

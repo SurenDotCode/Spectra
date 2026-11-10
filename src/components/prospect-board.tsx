@@ -35,6 +35,10 @@ function SourceLink({ url, date }: { url: string; date?: string }) {
 export function ProspectBoard({ searchId }: { searchId?: string }) {
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [offer, setOffer] = useState("");
+  const [searchSummary, setSearchSummary] = useState<{
+    status: string;
+    reason: string;
+  }>();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [focused, setFocused] = useState("");
@@ -54,12 +58,16 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
       z.object({
         prospects: z.array(prospectSchema),
         offerId: z.string().optional(),
+        searchSummary: z
+          .object({ status: z.string(), reason: z.string() })
+          .optional(),
       }),
     )
       .then((r) => {
         if (active) {
           setProspects(r.prospects);
           setOffer(r.offerId ?? "");
+          setSearchSummary(r.searchSummary);
           setFocused(r.prospects[0]?.id ?? "");
         }
       })
@@ -204,10 +212,49 @@ export function ProspectBoard({ searchId }: { searchId?: string }) {
         </p>
       ) : null}
       {loading ? <p aria-busy="true">Loading prospects…</p> : null}
-      {!loading && !visible.length ? (
+      {!loading && !error && !visible.length ? (
         <div className="card empty">
-          <h2>No matching prospects.</h2>
-          <p>Broaden the filters or start another search.</p>
+          <h2>
+            {prospects.length
+              ? "Your filters hide these prospects."
+              : searchSummary?.status === "completed"
+                ? "No qualified prospects in this search."
+                : "No prospects saved yet."}
+          </h2>
+          <p>
+            {prospects.length
+              ? `${prospects.length} saved prospects are available. Clear the filters to see them.`
+              : searchSummary?.reason ||
+                "Start or resume research to find prospects."}
+          </p>
+          {prospects.length ? (
+            <button
+              className="secondary"
+              onClick={() => {
+                setFilter("all");
+                setCountry("");
+                setType("");
+                setChannel("");
+                setMinFit(0);
+                setExcludeAgencies(false);
+                setIntegration("");
+              }}
+            >
+              Clear filters
+            </button>
+          ) : (
+            <Link className="button secondary" href="/prospects">
+              View all saved prospects
+            </Link>
+          )}
+          {searchId && searchSummary?.status !== "completed" ? (
+            <Link
+              className="button secondary"
+              href={`/research?id=${searchId}&run=1`}
+            >
+              Continue research
+            </Link>
+          ) : null}
           <Link className="button primary" href="/workspace">
             Describe offer
           </Link>

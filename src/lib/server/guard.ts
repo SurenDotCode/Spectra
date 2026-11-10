@@ -8,6 +8,7 @@ import { assertAccountEnabled } from "./audit";
 import { userDb } from "./db";
 import { AppError, publicError } from "../errors";
 import { verifyCsrf } from "../security/csrf";
+import { ProviderDeferred } from "../providers/deferred";
 export function redis() {
   const e = env();
   if (!e.UPSTASH_REDIS_REST_URL || !e.UPSTASH_REDIS_REST_TOKEN)
@@ -126,7 +127,13 @@ export async function handle(action: () => Promise<Response>) {
       }),
     );
     return Response.json(
-      { error: e.error, code: e.code },
+      {
+        error: e.error,
+        code: e.code,
+        ...(error instanceof ProviderDeferred
+          ? { retryAt: error.retryAt }
+          : {}),
+      },
       { status: e.status },
     );
   }

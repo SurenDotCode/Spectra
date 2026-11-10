@@ -24,8 +24,29 @@ export const envSchema = z
     TURNSTILE_SITE_KEY: z.string().optional(),
     TURNSTILE_SECRET_KEY: z.string().optional(),
     GLOBAL_KILL_SWITCH: flag,
+    LOCAL_AUTO_SIGN_IN: flag,
+    LOCAL_TEST_EMAIL: z.email().optional(),
+    LOCAL_TEST_PASSWORD: z.string().min(32).optional(),
   })
   .superRefine((v, ctx) => {
+    if (v.LOCAL_AUTO_SIGN_IN === "true") {
+      if (!v.LOCAL_TEST_EMAIL || !v.LOCAL_TEST_PASSWORD)
+        ctx.addIssue({
+          code: "custom",
+          path: ["LOCAL_AUTO_SIGN_IN"],
+          message: "Local test credentials are required",
+        });
+      if (
+        !["127.0.0.1", "localhost", "[::1]"].includes(
+          new URL(v.APP_URL).hostname,
+        )
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["APP_URL"],
+          message: "Automatic local sign-in requires a loopback origin",
+        });
+    }
     if (v.SPECTRA_MODE === "live")
       for (const k of [
         "SUPABASE_URL",

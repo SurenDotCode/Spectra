@@ -66,6 +66,9 @@ export const personSchema = z
   .strict();
 export const assessmentSchema = z
   .object({
+    buyerRole: z
+      .enum(["buyer", "competitor", "publisher", "unknown"])
+      .optional(),
     observations: z.array(observationSchema).max(8),
     inferences: z.array(short).max(5),
     unknowns: z.array(short).max(5),

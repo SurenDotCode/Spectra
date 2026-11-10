@@ -201,11 +201,35 @@ export class SafeFetchProvider implements FetchProvider {
       .filter((x) =>
         /^https:\/\/(www\.)?linkedin\.com\/(in|company)\//.test(x),
       );
+    const publishedEmails = $("a[href^='mailto:']")
+      .toArray()
+      .map((e) => {
+        try {
+          return decodeURIComponent(
+            ($(e).attr("href") ?? "").slice(7).split("?")[0],
+          );
+        } catch {
+          return "";
+        }
+      })
+      .filter(Boolean)
+      .join(" ");
     return {
       url: r.url,
       title: $("title").text().slice(0, 1500),
-      text: $.root().text().replace(/\s+/g, " ").trim().slice(0, 50000),
-      links: [...links, ...linkedin].slice(0, 100),
+      text: (
+        $.root().text().replace(/\s+/g, " ").trim().slice(0, 48000) +
+        (publishedEmails
+          ? " Published email links: " + publishedEmails.slice(0, 2000)
+          : "")
+      ).trim(),
+      links: [
+        ...($("form").length && /contact/i.test(new URL(r.url).pathname)
+          ? [r.url]
+          : []),
+        ...links,
+        ...linkedin,
+      ].slice(0, 100),
       kind: "page",
       fetchedAt: new Date().toISOString(),
     };

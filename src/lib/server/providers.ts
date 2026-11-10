@@ -10,6 +10,7 @@ import {
 import { PrismaProvider, TimbreProvider } from "../providers/gnani";
 import { TavilySearchProvider } from "../providers/search";
 import type { Charge } from "../providers/interfaces";
+import { reserveReasoning } from "./reasoning-queue";
 export function chargeFor(userId: string): Charge {
   return async (feature, amount = 1) => {
     const e = env();
@@ -59,6 +60,8 @@ export function reasoning(userId: string) {
       approved: true,
     },
     chargeFor(userId),
+    fetch,
+    reserveReasoning,
   );
 }
 export function speech(userId: string) {

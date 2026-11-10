@@ -10,3 +10,5 @@ supabase/.branches/
 *.tsbuildinfo
 .vercel/
 codeql-results/
+
+/.next-local/

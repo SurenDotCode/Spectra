@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Assessment, Candidate, Source, Prospect } from "../schemas";
 import { domain } from "./core";
+import { cleanContacts } from "./contacts";
 const normalized = (v: string) => v.toLowerCase().replace(/\s+/g, " ").trim();
 export function verifyAssessment(
   assessment: Assessment,
@@ -12,7 +13,7 @@ export function verifyAssessment(
     const s = stored.get(o.sourceUrl);
     return s && normalized(s.text).includes(normalized(o.quote));
   });
-  const contacts = assessment.contacts
+  const contacts = cleanContacts(assessment.contacts)
     .filter((c) => {
       const s = stored.get(c.sourceUrl);
       if (!s || domain(s.url) !== domain(candidate.url)) return false;
@@ -80,10 +81,19 @@ export function qualify(
   id: string,
 ): Prospect | null {
   const a = verifyAssessment(assessment, sources, candidate);
-  const supportedName = sources.some((s) =>
-    normalized(s.text + " " + s.title).includes(normalized(candidate.name)),
+  const brandKey = (value: string) =>
+    normalized(value).replace(/[^a-z0-9]/g, "");
+  const candidateDomain = domain(candidate.url);
+  const supportedName = sources.some(
+    (s) =>
+      normalized(s.text + " " + s.title).includes(normalized(candidate.name)) ||
+      (domain(s.url) === candidateDomain &&
+        brandKey(candidate.name).length >= 4 &&
+        brandKey(candidate.name) ===
+          brandKey(candidateDomain.split(".").slice(0, -1).join("."))),
   );
   if (
+    (a.buyerRole !== undefined && a.buyerRole !== "buyer") ||
     !supportedName ||
     !a.observations.length ||
     a.fit < 3 ||

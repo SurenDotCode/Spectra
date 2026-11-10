@@ -212,3 +212,70 @@ it("atomically stops at per-user quota without resetting counters", async () => 
   ).toBe(false);
   await db.exec("reset role");
 });
+it("refreshes saved prospect contacts atomically while preserving its ID and user state", async () => {
+  await db.exec("reset role");
+  const offer = crypto.randomUUID(),
+    search = crypto.randomUUID(),
+    id = crypto.randomUUID();
+  await db.query(
+    "insert into public.offer_profiles(id,user_id) values($1,$2)",
+    [offer, a],
+  );
+  await db.query(
+    "insert into public.searches(id,user_id,offer_id,idempotency_key) values($1,$2,$3,$4)",
+    [search, a, offer, crypto.randomUUID()],
+  );
+  const p = {
+    id,
+    domain: "refresh.example",
+    name: "Refresh",
+    sources: [],
+    assessment: {
+      observations: [],
+      inferences: [],
+      unknowns: [],
+      people: [],
+      contacts: [],
+    },
+  };
+  await db.query("select public.save_prospect($1,$2,$3::jsonb)", [
+    a,
+    search,
+    JSON.stringify(p),
+  ]);
+  await db.query(
+    "insert into public.prospect_states(user_id,business_id,status) values($1,$2,$3)",
+    [a, id, "saved"],
+  );
+  p.assessment.contacts = [
+    {
+      channel: "email",
+      value: "hello@refresh.example",
+      sourceUrl: "https://refresh.example/contact",
+      checkedAt: "2026-11-09T00:00:00Z",
+    },
+  ] as never[];
+  await db.query("select public.save_prospect($1,$2,$3::jsonb)", [
+    a,
+    search,
+    JSON.stringify({ ...p, id: crypto.randomUUID() }),
+  ]);
+  const rows = await db.query<{
+    id: string;
+    data: { id: string; assessment: { contacts: unknown[] } };
+  }>("select id,data from public.businesses where id=$1", [id]);
+  expect(rows.rows[0].data.id).toBe(id);
+  expect(rows.rows[0].data.assessment.contacts).toHaveLength(1);
+  expect(
+    (await db.query("select * from public.contacts where business_id=$1", [id]))
+      .rows,
+  ).toHaveLength(1);
+  expect(
+    (
+      await db.query<{ status: string }>(
+        "select status from public.prospect_states where business_id=$1",
+        [id],
+      )
+    ).rows[0].status,
+  ).toBe("saved");
+});

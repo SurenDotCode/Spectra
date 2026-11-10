@@ -34,6 +34,7 @@ export default defineConfig([
   },
   globalIgnores([
     ".next/**",
+    ".next-local/**",
     "coverage/**",
     "playwright-report/**",
     "test-results/**",

@@ -173,3 +173,48 @@ it("prompt injection does not give a generated contact provenance", () => {
   );
   expect(a.contacts).toEqual([]);
 });
+
+it.each(["competitor", "publisher", "unknown"] as const)(
+  "does not qualify a %s even with a high model fit score and real quotes",
+  (buyerRole) => {
+    expect(
+      qualify(
+        candidate,
+        { ...assessment, buyerRole, fit: 5 },
+        [source],
+        crypto.randomUUID(),
+      ),
+    ).toBeNull();
+  },
+);
+it("accepts a source-supported buyer without requiring proven purchasing intent", () => {
+  expect(
+    qualify(
+      candidate,
+      { ...assessment, buyerRole: "buyer" },
+      [source],
+      crypto.randomUUID(),
+    ),
+  ).not.toBeNull();
+});
+
+it("accepts an exact brand domain when the page uses a shorter trading name", () => {
+  const c = {
+    ...candidate,
+    name: "Spark Social Agency",
+    url: "https://sparksocialagency.com/campaigns",
+  };
+  const s = {
+    ...source,
+    url: c.url,
+    title: "Spark",
+    text: "We manage creator campaigns for clients.",
+  };
+  const a = {
+    ...assessment,
+    observations: [{ quote: s.text, sourceUrl: s.url }],
+  };
+  expect(qualify(c, a, [s], "test")).not.toBeNull();
+  expect(qualify({ ...c, name: "Invented Agency" }, a, [s], "test")).toBeNull();
+  expect(qualify(c, { ...a, observations: [] }, [s], "test")).toBeNull();
+});

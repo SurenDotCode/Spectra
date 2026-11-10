@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     );
     if (input.action === "understand") {
       const result = await reasoning(user.id).generate(
-        "Extract this offer faithfully. Do not invent pricing, integrations, or capabilities. Put Not specified for unknown text fields and [] for unknown lists. Ask up to 3 concise clarification questions about consequential gaps. Use supplied preferences.",
+        "Extract this offer faithfully. Do not invent pricing, integrations, or capabilities. Put Not specified for unknown text fields and [] for unknown lists. Do not ask clarification questions: return questions as an empty array. Proceed from the description. Identify intended customers and capabilities when explicitly stated. Use preferences for geography and languages; Not specified values must not override details stated in the description.",
         input,
         z
           .object({
