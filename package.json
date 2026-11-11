@@ -14,7 +14,7 @@
     "check": "npm run typecheck && npm run lint && npm test && npm run build"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "3.0.84",
+    "@ai-sdk/openai-compatible": "3.0.87",
     "@radix-ui/react-tabs": "1.2.1",
     "@supabase/server": "1.9.2",
     "@supabase/ssr": "0.12.7",
